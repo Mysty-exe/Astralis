@@ -4,8 +4,9 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/lib",
-                "${workspaceFolder}/bin"
+                "${workspaceFolder}/libs/SDL2/include",
+                "${workspaceFolder}/libs/SDL2Image/include",
+                "${workspaceFolder}/libs/SDL2TTF/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -14,7 +15,8 @@
             ],
             "cStandard": "c17",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "windows-gcc-x64"
+            "intelliSenseMode": "windows-gcc-x64",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe"
         }
     ],
     "version": 4
