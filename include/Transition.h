@@ -17,14 +17,14 @@ private:
     int width, height;
     int holdSpeed, pixelatedSpeed;
     SDL_Renderer *renderer;
-    Timer holdTimer;
+    Timer pixelateTimer, holdTimer;
     vector<Vector> locations;
     vector<Vector> drawLocations;
 
 public:
     string transitionState;
     Transition();
-    Transition(SDL_Renderer *renderer, int width, int height, int holdSpeed, int pixelatedSpeed);
+    Transition(SDL_Renderer *renderer, int width, int height, int holdSpeed);
     void getPossibleLocations();
     string runTransition();
 };

@@ -15,7 +15,7 @@ Image::~Image()
     // free();
 }
 
-void Image::loadFromFile(SDL_Renderer *renderer, string path, int multiplier)
+void Image::loadFromFile(SDL_Renderer *renderer, string path, float multiplier)
 {
     free();
 
@@ -51,10 +51,11 @@ void Image::free()
     }
 }
 
-void Image::render(SDL_Renderer *renderer, int scroll)
+void Image::render(SDL_Renderer *renderer, float xscroll, float yscroll, float angle)
 {
-    SDL_Rect renderQuad = {x, y - scroll, width, height};
-    SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    SDL_Point point = {0, height};
+    SDL_Rect renderQuad = {x - xscroll, y - yscroll, width, height};
+    SDL_RenderCopyEx(renderer, texture, NULL, &renderQuad, angle, &point, SDL_FLIP_NONE);
 }
 
 void Image::setCoords(int x, int y)

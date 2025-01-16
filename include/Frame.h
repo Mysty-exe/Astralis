@@ -14,6 +14,7 @@ private:
 
 public:
     Frame(string name, int x, int y, int w, int h);
-    SDL_Rect *getRect(int scroll);
-    void display(SDL_Renderer *renderer, int scroll);
+    void display(SDL_Renderer *renderer, float xscroll, float yscroll);
+    string getName();
+    SDL_Rect *getRect(float xscroll, float yscroll);
 };

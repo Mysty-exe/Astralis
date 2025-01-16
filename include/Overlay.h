@@ -14,7 +14,7 @@ private:
     TTF_Font *smallFont;
     SDL_Color textColor;
     float width, height;
-    Image pausedTxt, dateTxt, rateTxt;
+    Image focusedTxt, modeTxt, dateTxt, rateTxt;
     double simSecs, irlSecs;
 
 public:
@@ -22,5 +22,6 @@ public:
     Overlay(SDL_Renderer *renderer, int width, int height);
     void displayTimeRate(int rate, int zoom);
     void displaySimulationDate(int rate, int secs, int zoom);
-    void displaySimulationStatus(bool paused, int zoom);
+    void displaySimulationStatus(bool paused, bool editing, int zoom);
+    void displayFocusedObject(string name, string objType, int zoom);
 };

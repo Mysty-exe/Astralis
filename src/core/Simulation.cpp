@@ -11,57 +11,56 @@ Simulation::Simulation(SDL_Renderer *renderer, int width, int height)
     this->height = height;
     gameWidth = width;
     gameHeight = height;
+    simState = MAIN;
     pause = false;
-    escape = false;
-    addObjectsTab = false;
+    editing = false;
     zoom = 3;
     zoomFactor = 1;
 
     dragState = "";
     errorColor = "";
+    pointer = false;
 
-    addSidebar = Sidebar(renderer, width, height);
+    sidebar = Sidebar(renderer, width, height);
     overlay = Overlay(renderer, width, height);
-    transition = Transition(renderer, width, height, 1, 45);
+    transition = Transition(renderer, width, height, 1);
     transition.transitionState = "In";
 
-    pointerCursor.loadFromFile(renderer, "assets/cursors/pointer.png", 4);
-    handCursor.loadFromFile(renderer, "assets/cursors/hand.png", 4);
+    pointerCursor.loadFromFile(renderer, "assets/cursors/pointer.png", 2);
+    handCursor.loadFromFile(renderer, "assets/cursors/hand.png", 2);
 
     backgroundImg.loadFromFile(renderer, "assets/Backgrounds/background.png", 1);
+    editingRect = {0, 0, width, height};
 
-    returnTxt.loadFromFile(renderer, "assets/Escape/mainMenuTxt.png", 4);
+    returnTxt.loadFromFile(renderer, "assets/Escape/mainMenuTxt.png", 2);
     returnTxt.setCoords(width / 2 - returnTxt.getWidth() / 2, height / 8);
 
-    yesTxt.loadFromFile(renderer, "assets/Escape/yesTxt.png", 3);
+    yesTxt.loadFromFile(renderer, "assets/Escape/yesTxt.png", 1.5);
     yesTxt.setCoords(width / 2 - yesTxt.getWidth() / 2, returnTxt.y + height / 3);
-    yesHoverTxt.loadFromFile(renderer, "assets/Escape/yesHoverTxt.png", 3);
+    yesHoverTxt.loadFromFile(renderer, "assets/Escape/yesHoverTxt.png", 1.5);
     yesHoverTxt.setCoords(width / 2 - yesHoverTxt.getWidth() / 2, returnTxt.y + height / 3);
 
-    noTxt.loadFromFile(renderer, "assets/Escape/noTxt.png", 3);
+    noTxt.loadFromFile(renderer, "assets/Escape/noTxt.png", 1.5);
     noTxt.setCoords(width / 2 - noTxt.getWidth() / 2, yesTxt.y + height / 6);
-    noHoverTxt.loadFromFile(renderer, "assets/Escape/noHoverTxt.png", 3);
+    noHoverTxt.loadFromFile(renderer, "assets/Escape/noHoverTxt.png", 1.5);
     noHoverTxt.setCoords(width / 2 - noHoverTxt.getWidth() / 2, yesTxt.y + height / 6);
 
-    mouse = Vector(0, 0);
     panningOffset = Vector(0, 0);
     zoomOffset = Vector(0, 0);
 
-    sun = CelestialObject("Sun", STAR, 2 * pow(10, 30), 60000, width / 2, height / 2, Vector(0, 0));
-    earth = CelestialObject("Earth", PLANET, 6 * pow(10, 24), 6000, width / 2 + 100, height / 2, Vector(0, -36.535));
-    mars = CelestialObject("Mars", PLANET, 5 * pow(10, 23), 3000, width / 2 + 250, height / 2, Vector(0, 23.11));
-    neptune = CelestialObject("Neptune", PLANET, 4 * pow(10, 26), 13000, width - 150, height / 2, Vector(0, -17.223));
-    rogue = CelestialObject("Rogue", PLANET, 5 * pow(10, 14), 15000, width * 5, height / 2, Vector(0, -4.97177));
-    moon = CelestialObject("Moon", MOON, 2 * pow(10, 9), 1000, (width * 5) + 75, height / 2, Vector(0, -10.671));
+    sun = CelestialObject(renderer, "Sun", "Star", 2 * pow(10, 30), 60000, width / 2, height / 2, Vector(0, 0));
+    earth = CelestialObject(renderer, "Earth", "Planet", 6 * pow(10, 24), 6000, width / 2 + 100, height / 2, Vector(0, -36.535));
+    mars = CelestialObject(renderer, "Mars", "Planet", 5 * pow(10, 23), 3000, width / 2 + 250, height / 2, Vector(0, 23.11));
     objects = {sun, earth, mars};
 
+    timeStep = 0;
+    focusedObject = -1;
     currentTimeRate = 0;
 }
 
 void Simulation::resetSimulation()
 {
-    pause = false;
-    escape = false;
+    simState = MAIN;
     zoomFactor = 1;
     transition.transitionState = "In";
     transition.getPossibleLocations();
@@ -69,16 +68,16 @@ void Simulation::resetSimulation()
     currentTimeRate = 0;
 }
 
-void Simulation::drawCursor(bool holdClick)
+void Simulation::drawCursor(Events events)
 {
-    if (holdClick)
+    if (pointer)
     {
-        handCursor.setCoords(mouse.x, mouse.y);
+        handCursor.setCoords(events.mousePos.x - 4, events.mousePos.y);
         handCursor.render(renderer);
     }
     else
     {
-        pointerCursor.setCoords(mouse.x, mouse.y);
+        pointerCursor.setCoords(events.mousePos.x, events.mousePos.y);
         pointerCursor.render(renderer);
     }
 }
@@ -121,9 +120,9 @@ void Simulation::drawBackground()
     }
 }
 
-string Simulation::escapeTab(string state, bool click)
+string Simulation::returnScreen(Events events, string state)
 {
-    SDL_Point point = {mouse.x, mouse.y};
+    SDL_Point point = events.getPoint();
 
     SDL_Rect rect = {0, 0, width, height};
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 100);
@@ -133,8 +132,9 @@ string Simulation::escapeTab(string state, bool click)
 
     if (SDL_PointInRect(&point, yesTxt.getRect()))
     {
+        pointer = true;
         yesHoverTxt.render(renderer);
-        if (click)
+        if (events.leftClick)
         {
             resetSimulation();
             state = "Menu";
@@ -147,10 +147,11 @@ string Simulation::escapeTab(string state, bool click)
 
     if (SDL_PointInRect(&point, noTxt.getRect()))
     {
+        pointer = true;
         noHoverTxt.render(renderer);
-        if (click)
+        if (events.leftClick)
         {
-            escape = false;
+            simState = MAIN;
         }
     }
     else
@@ -161,7 +162,138 @@ string Simulation::escapeTab(string state, bool click)
     return state;
 }
 
-void Simulation::dragHandler(Vector mouseWheel, bool holdClick)
+void Simulation::mainScreen(Events events)
+{
+    SDL_Point point = events.getPoint();
+
+    timeStep = stepTimer.getTicks() / 1000.0f;
+    if (!pause && !editing && simState != RETURN)
+    {
+        if (dateTimer.isPaused())
+        {
+            dateTimer.unpause();
+        }
+        CelestialObject::applyForces(objects, timeStep, currentTimeRate);
+
+        if (events.checkSpecialKey(ENTER) && objects.size() != 0)
+        {
+            if (focusedObject < objects.size() - 1)
+            {
+                focusedObject += 1;
+            }
+            else
+            {
+                focusedObject = 0;
+            }
+        }
+        if (events.checkSpecialKey(BACKSPACE))
+        {
+            focusedObject = -1;
+        }
+    }
+    else
+    {
+        dateTimer.pause();
+    }
+    stepTimer.start();
+
+    SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
+    CelestialObject::display(renderer, objects, panningOffset, zoomOffset);
+
+    overlay.displaySimulationDate(currentTimeRate, dateTimer.getTicks(), zoom);
+    overlay.displayTimeRate(currentTimeRate, zoom);
+
+    if (editing)
+    {
+        SDL_SetRenderDrawColor(renderer, 203, 195, 227, 50);
+        SDL_RenderFillRect(renderer, &editingRect);
+    }
+
+    overlay.displaySimulationStatus(pause, editing, zoom);
+
+    if ((simState == MAIN && events.holdingClick) && focusedObject == -1)
+    {
+        pointer = true;
+        panningOffset += events.mouseOffset;
+    }
+    else if (focusedObject != -1)
+    {
+        if (!pause)
+        {
+            overlay.displayFocusedObject(objects[focusedObject].name, objects[focusedObject].objType, zoom);
+        }
+        panningOffset = Vector(-objects[focusedObject].position.x, -objects[focusedObject].position.y);
+        panningOffset.x += width / 2;
+        panningOffset.y += height / 2;
+    }
+}
+
+void Simulation::editScreen(Events events)
+{
+    SDL_Point point = events.getPoint();
+
+    Vector spawnLoc = Vector(width / 2, height / 2) - panningOffset;
+    sidebar.runSidebar(events, spawnLoc, objects, timeStep);
+    if (sidebar.editState)
+    {
+        editing = true;
+        simState = EDITING;
+    }
+
+    pointer = sidebar.checkHover(point, objects);
+
+    if (events.holdingClick && sidebar.selectedObject == -1)
+    {
+        pointer = true;
+        panningOffset += events.mouseOffset;
+    }
+}
+
+void Simulation::eventsHandler(Events events)
+{
+    if (events.checkSpecialKey(CTRL))
+    {
+        if (!pause)
+        {
+            focusedObject = -1;
+            editing = not editing;
+            sidebar.reset();
+            simState = (simState != MAIN) ? MAIN : EDITING;
+        }
+    }
+    else if (events.checkSpecialKey(SPACE) && simState != RETURN && simState != EDITING)
+    {
+        pause = not pause;
+    }
+    else if (events.checkSpecialKey(ESCAPE))
+    {
+        simState = (simState != RETURN) ? RETURN : MAIN;
+    }
+    else if (events.checkSpecialKey(RIGHT) && !pause && !editing && simState != RETURN)
+    {
+        if (currentTimeRate < Utilities::getTimeRates().size() - 1)
+        {
+            currentTimeRate++;
+            for (CelestialObject &co : objects)
+            {
+                co.velocity *= Utilities::getTimeMultipliers()[currentTimeRate].second;
+            }
+        }
+    }
+    else if (events.checkSpecialKey(LEFT) && !pause && !editing && simState != RETURN)
+    {
+        if (currentTimeRate > 0)
+        {
+            for (CelestialObject &co : objects)
+            {
+                co.velocity /= Utilities::getTimeMultipliers()[currentTimeRate].second;
+            }
+            currentTimeRate--;
+        }
+    }
+}
+
+string Simulation::runSimulation(Events events, string state)
 {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
@@ -169,189 +301,6 @@ void Simulation::dragHandler(Vector mouseWheel, bool holdClick)
 
     Vector currentMouse = Vector(mouseX, mouseY);
 
-    if (holdClick && !SDL_PointInRect(&point, addSidebar.getRect()) && dragState != "Sidebar")
-    {
-        dragState = "Simulation";
-    }
-    else if (addObjectsTab && SDL_PointInRect(&point, addSidebar.getRect()) && holdClick && dragState != "Simulation")
-    {
-        dragState = "Sidebar";
-    }
-    else if (!holdClick)
-    {
-        dragState = "";
-    }
-
-    if (holdClick)
-    {
-        if (dragState == "Simulation")
-        {
-            panningOffset += currentMouse - mouse;
-        }
-        else if (dragState == "Sidebar")
-        {
-            addSidebar.scroll -= (currentMouse - mouse).y;
-            addSidebar.scroll = (addSidebar.scroll < 0) ? 0 : addSidebar.scroll;
-            addSidebar.scroll = (addSidebar.scroll > addSidebar.maxScroll) ? addSidebar.maxScroll : addSidebar.scroll;
-        }
-    }
-    mouse = currentMouse;
-}
-
-void Simulation::zoomHandler(Vector mouseWheel)
-{
-    if (mouseWheel.y < 0)
-    {
-        if (zoom > 0)
-        {
-            zoom -= 1;
-        }
-        else
-        {
-            return;
-        }
-    }
-    else if (mouseWheel.y > 0)
-    {
-        if (zoom < 7)
-        {
-            zoom += 1;
-        }
-        else
-        {
-            return;
-        }
-    }
-
-    if (mouseWheel.y != 0)
-    {
-        pair<Vector, Vector> zoomInfo = Utilities::getZoomScales(width, height)[zoom];
-
-        SDL_RenderSetLogicalSize(renderer, zoomInfo.first.x, zoomInfo.first.y);
-        zoomOffset.x += (mouseWheel.y / abs(mouseWheel.y)) * zoomInfo.second.x;
-        zoomOffset.y += (mouseWheel.y / abs(mouseWheel.y)) * zoomInfo.second.y;
-    }
-}
-
-void Simulation::eventsHandler(vector<string> events)
-{
-    for (string event : events)
-    {
-        if (event == "tab")
-        {
-            addSidebar.state = "Objects";
-            addObjectsTab = not addObjectsTab;
-        }
-        else if (event == "space")
-        {
-            pause = not pause;
-        }
-        else if (event == "escape")
-        {
-            addObjectsTab = false;
-            escape = not escape;
-        }
-        else if (event == "ctrl")
-        {
-            panningOffset = Vector(0, 0);
-        }
-        else if (event == "right")
-        {
-            if (currentTimeRate < Utilities::getTimeRates().size() - 1)
-            {
-                currentTimeRate++;
-                for (CelestialObject &co : objects)
-                {
-                    co.velocity *= Utilities::getTimeMultipliers()[currentTimeRate].second;
-                }
-            }
-        }
-        else if (event == "left")
-        {
-            if (currentTimeRate > 0)
-            {
-                for (CelestialObject &co : objects)
-                {
-                    co.velocity /= Utilities::getTimeMultipliers()[currentTimeRate].second;
-                }
-                currentTimeRate--;
-            }
-        }
-    }
-}
-
-string Simulation::runSimulation(string state, vector<string> events, bool click, bool holdClick, Vector mouseWheel)
-{
-    if (transition.transitionState != "In")
-    {
-        drawBackground();
-
-        // if (errorColor == "Red")
-        // {
-        //     SDL_Rect rect = {width / 3, 0, width, height};
-        //     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 50);
-        //     SDL_RenderFillRect(renderer, &rect);
-        // }
-        // else if (errorColor == "Red")
-        // {
-        //     SDL_Rect rect = {width / 3, 0, width, height};
-        //     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 50);
-        //     SDL_RenderFillRect(renderer, &rect);
-        // }
-
-        dragHandler(mouseWheel, holdClick);
-        // zoomHandler(mouseWheel);
-        eventsHandler(events);
-
-        SDL_Point point = {mouse.x, mouse.y};
-        for (Frame frame : addSidebar.getFrames())
-        {
-            if (click && SDL_PointInRect(&point, frame.getRect(addSidebar.scroll)))
-            {
-                errorColor = "Red";
-                addSidebar.state = "Edit";
-            }
-        }
-
-        SDL_SetRenderDrawColor(renderer, 123, 12, 255, 255);
-
-        double timeStep = stepTimer.getTicks() / 1000.0f;
-        if (!pause && !escape)
-        {
-            if (dateTimer.isPaused())
-            {
-                dateTimer.unpause();
-            }
-
-            CelestialObject::applyForces(objects, timeStep, currentTimeRate);
-        }
-        else
-        {
-            dateTimer.pause();
-        }
-        stepTimer.start();
-
-        CelestialObject::display(renderer, objects, panningOffset, zoomOffset);
-
-        overlay.displaySimulationStatus(pause, zoom);
-        overlay.displaySimulationDate(currentTimeRate, dateTimer.getTicks(), zoom);
-        overlay.displayTimeRate(currentTimeRate, zoom);
-
-        if (escape)
-        {
-            state = escapeTab(state, click);
-        }
-
-        if (addObjectsTab)
-        {
-            addSidebar.drawSidebar();
-        }
-
-        if (!addObjectsTab || addSidebar.state != "Edit")
-        {
-            errorColor = "";
-        }
-    }
     if (transition.transitionState == "Out")
     {
         if (!dateTimer.isStarted())
@@ -361,8 +310,37 @@ string Simulation::runSimulation(string state, vector<string> events, bool click
         }
     }
 
-    drawCursor(holdClick);
+    if (transition.transitionState == "Out" || transition.transitionState == "Done")
+    {
+        drawBackground();
+        mainScreen(events);
+
+        if (transition.transitionState == "Done")
+        {
+            eventsHandler(events);
+
+            switch (simState)
+            {
+            case EDITING:
+            {
+                editScreen(events);
+                break;
+            };
+
+            case RETURN:
+            {
+                state = returnScreen(events, state);
+                break;
+            }
+            }
+        }
+    }
+
     transition.runTransition();
+
+    drawCursor(events);
+
+    pointer = false;
 
     SDL_RenderPresent(renderer);
 

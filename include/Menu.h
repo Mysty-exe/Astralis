@@ -4,6 +4,7 @@
 #include <SDL_ttf.h>
 #include <string>
 #include <cmath>
+#include <Events.h>
 #include <Image.h>
 #include <Vector.h>
 #include <Animation.h>
@@ -27,5 +28,5 @@ public:
     Menu();
     Menu(SDL_Renderer *renderer, string title, int width, int height);
     void drawCursor(int mouseX, int mouseY);
-    string runMenu(string state, bool click);
+    string runMenu(Events events, string state);
 };

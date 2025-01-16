@@ -6,15 +6,21 @@ Frame::Frame(string name, int x, int y, int w, int h)
     rect = {x, y, w, h};
 }
 
-SDL_Rect *Frame::getRect(int scroll)
+void Frame::display(SDL_Renderer *renderer, float xscroll, float yscroll)
 {
-    SDL_Rect tempRect = {rect.x, rect.y - scroll, rect.w, rect.h};
-    return &rect;
+    SDL_Rect tempRect = {rect.x - xscroll, rect.y - yscroll, rect.w, rect.h};
+    SDL_RenderDrawLine(renderer, tempRect.x + 5, tempRect.y + tempRect.h, tempRect.x + tempRect.w - 5, tempRect.y + tempRect.h);
+    SDL_RenderDrawLine(renderer, tempRect.x + tempRect.w - 1, tempRect.y + 5, tempRect.x + tempRect.w - 1, tempRect.y + tempRect.h - 5);
 }
 
-void Frame::display(SDL_Renderer *renderer, int scroll)
+string Frame::getName()
 {
-    SDL_Rect tempRect = {rect.x, rect.y - scroll, rect.w, rect.h};
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderDrawRect(renderer, &tempRect);
+    return name;
+}
+
+SDL_Rect *Frame::getRect(float xscroll, float yscroll)
+{
+    rect.x -= xscroll;
+    rect.y -= yscroll;
+    return &rect;
 }

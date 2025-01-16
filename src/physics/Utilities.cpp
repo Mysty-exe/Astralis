@@ -1,6 +1,7 @@
 #include <Utilities.h>
 
 float Utilities::g = 6.674 * (1 / pow(10, 8));
+int Utilities::numObjects = 1;
 
 vector<pair<Vector, Vector>> Utilities::getZoomScales(float width, float height)
 {
@@ -16,11 +17,11 @@ vector<pair<Vector, Vector>> Utilities::getZoomScales(float width, float height)
 
 vector<vector<string>> Utilities::getStellarObjects()
 {
-    vector<string> stars = {"Stars", "Star 1", "Star 2"};
-    vector<string> planets = {"Planets", "Planet 1", "Planet 2", "Planet 3", "Planet 4", "Planet 5"};
-    vector<string> moons = {"Moons", "Moon 1", "Moon 2", "Moon 3"};
-    vector<string> asteroids = {"Asteroids", "Asteroid"};
-    vector<vector<string>> stellarObjects = {stars, planets, moons, asteroids};
+    vector<string> stars = {"Stars", "Star", "Star"};
+    vector<string> planets = {"Planets", "Planet", "Planet", "Planet", "Planet", "Planet"};
+    // vector<string> moons = {"Moons", "Moon", "Moon", "Moon"};
+    // vector<string> asteroids = {"Asteroids", "Asteroid"};
+    vector<vector<string>> stellarObjects = {stars, planets};
     return stellarObjects;
 }
 
@@ -100,12 +101,139 @@ void Utilities::drawCircle(SDL_Renderer *renderer, int displayX, int displayY, i
     }
 };
 
-float Utilities::scaleDistance(float dist)
+long double Utilities::scaleDistance(long double dist)
 {
-    return dist / 1000;
+    return dist / 2000;
 }
 
-float Utilities::scaleMass(float mass)
+long double Utilities::scaleMass(long double mass)
 {
     return mass / pow(10, 24);
+}
+
+long double Utilities::getRealDistance(long double dist)
+{
+    return dist * 2000;
+}
+
+long double Utilities::getRealMass(long double mass)
+{
+    return mass * pow(10, 24);
+}
+
+string Utilities::removeTrailingZeroes(string number)
+{
+    string newStr = "";
+    for (int i = number.length() - 1; i > -1; i--)
+    {
+        if (number[i] == '.' || (number[i] != '0' && number.find('.') != string::npos))
+        {
+            (number[i] == '.') ? newStr = number.substr(0, i) : newStr = number.substr(0, i + 1);
+            break;
+        }
+        if (number[i] != '0' && number.find('.') == string::npos)
+        {
+            return number;
+        }
+    }
+    return newStr;
+}
+
+bool Utilities::validateRadius(string radius)
+{
+    int decimal = 0;
+    if (radius.length() == 0)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < radius.length(); i++)
+    {
+        if (radius[i] == '.')
+        {
+            decimal++;
+        }
+        if ((!isdigit(radius[i]) && radius[i] != '.') || decimal > 1)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Utilities::validateMass(string mass)
+{
+    int decimal = 0;
+    if (mass.length() == 0)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < mass.length(); i++)
+    {
+        if (!isdigit(mass[i]) || decimal > 1)
+        {
+            return false;
+        }
+        if (mass[i] == '.')
+        {
+            decimal++;
+        }
+    }
+    return true;
+}
+
+string Utilities::getExponentForm(string num)
+{
+    string result;
+    int numZeroes = 0;
+    int decimal = 0;
+
+    if (num == "0")
+    {
+        return num;
+    }
+
+    for (int i = num.length() - 1; i > -1; i--)
+    {
+        if (num[i] == '0')
+        {
+            numZeroes++;
+        }
+        else
+        {
+            if (numZeroes > 0)
+            {
+                result = num.substr(0, i + 1);
+                return result + "E+" + to_string(numZeroes);
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    numZeroes = 0;
+    for (int i = 0; i < num.length(); i++)
+    {
+        if (num[i] == '0')
+        {
+            numZeroes++;
+        }
+        else if (num[i] == '.')
+        {
+            decimal++;
+        }
+        else
+        {
+            if (numZeroes > 0 && decimal == 1)
+            {
+                result = num.substr(i, num.length() - i);
+                return result + "E-" + to_string(numZeroes);
+            }
+        }
+    }
+
+    return num;
 }

@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <string>
 #include <vector>
+#include <Events.h>
 #include <Menu.h>
 #include <Simulation.h>
 #include <Vector.h>
@@ -17,7 +18,7 @@ private:
     string title, state;
     int width, height;
 
-    vector<string> events;
+    Events events;
     bool click, holdClick;
 
     Menu menu;

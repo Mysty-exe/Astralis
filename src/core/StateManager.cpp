@@ -41,11 +41,6 @@ int StateManager::getHeight()
     return height;
 }
 
-void StateManager::setEvents(vector<string> newEvents)
-{
-    events = newEvents;
-}
-
 void StateManager::run()
 {
     SDL_Event windowEvent;
@@ -53,64 +48,16 @@ void StateManager::run()
 
     while (state != "Quit")
     {
-        click = false;
+        events.getEvents(windowEvent);
 
-        while (SDL_PollEvent(&windowEvent) != 0)
+        if (events.quit)
         {
-            if (windowEvent.type == SDL_QUIT)
-            {
-                state = "Quit";
-            }
-            else if (windowEvent.type == SDL_MOUSEWHEEL)
-            {
-                mouseWheel.x = windowEvent.wheel.x;
-                mouseWheel.y = windowEvent.wheel.y;
-            }
-            else if (windowEvent.type == SDL_MOUSEBUTTONDOWN)
-            {
-                events.push_back("click");
-                holdClick = true;
-                click = true;
-            }
-            else if (windowEvent.type == SDL_MOUSEBUTTONUP)
-            {
-                holdClick = false;
-            }
-            else if (windowEvent.type == SDL_KEYDOWN)
-            {
-                switch (windowEvent.key.keysym.sym)
-                {
-                case (SDLK_TAB):
-                    events.push_back("tab");
-                    break;
-                case (SDLK_SPACE):
-                    events.push_back("space");
-                    break;
-                case (SDLK_ESCAPE):
-                    events.push_back("escape");
-                    break;
-                case (SDLK_LCTRL):
-                    events.push_back("ctrl");
-                    break;
-                case (SDLK_UP):
-                    events.push_back("up");
-                    break;
-                case (SDLK_DOWN):
-                    events.push_back("down");
-                    break;
-                case (SDLK_RIGHT):
-                    events.push_back("right");
-                    break;
-                case (SDLK_LEFT):
-                    events.push_back("left");
-                    break;
-                }
-            }
+            state = "Quit";
         }
 
         if (state == "Menu")
         {
-            state = menu.runMenu(state, click);
+            state = menu.runMenu(events, state);
             if (state == "Simulation")
             {
                 holdClick = false;
@@ -118,7 +65,7 @@ void StateManager::run()
         }
         else if (state == "Simulation")
         {
-            state = simulation.runSimulation(state, events, click, holdClick, mouseWheel);
+            state = simulation.runSimulation(events, state);
             if (state == "Menu")
             {
                 menu.transition.transitionState = "In";
