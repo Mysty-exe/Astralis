@@ -37,8 +37,8 @@ Vector Vector::operator*(const Vector &other) const
 
 Vector Vector::operator/(const Vector &other) const
 {
-    int tempX = x;
-    int tempY = y;
+    long double tempX = x;
+    long double tempY = y;
     tempX = (other.x != 0) ? tempX / other.x : 0;
     tempY = (other.y != 0) ? tempY / other.y : 0;
 
@@ -86,8 +86,8 @@ Vector Vector::operator*(const long double &other) const
 
 Vector Vector::operator/(const long double &other) const
 {
-    int tempX = x;
-    int tempY = y;
+    long double tempX = x;
+    long double tempY = y;
     tempX = (other != 0) ? tempX / other : 0;
     tempY = (other != 0) ? tempY / other : 0;
 
@@ -156,6 +156,16 @@ Vector Vector::normalize()
     long double mag = magnitude();
     *this /= Vector(mag, mag);
     return *this;
+}
+
+double Vector::getRadians()
+{
+    return atan2(y, x);
+}
+
+double Vector::getAngle()
+{
+    return atan2(y, x) * 180 / PI;
 }
 
 void Vector::display()

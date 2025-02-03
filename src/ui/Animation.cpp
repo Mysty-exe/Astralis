@@ -4,7 +4,7 @@ Animation::Animation()
 {
 }
 
-Animation::Animation(SDL_Renderer *renderer, string folder, int multiplier, int frameSecs)
+Animation::Animation(SDL_Renderer *renderer, string folder, double multiplier, double frameSecs)
 {
     this->renderer = renderer;
     this->folder = folder;
@@ -16,6 +16,7 @@ Animation::Animation(SDL_Renderer *renderer, string folder, int multiplier, int 
 
 void Animation::loadFrames()
 {
+    images.clear();
     int size = -1;
     for (auto &f : filesystem::directory_iterator(folder))
     {
@@ -40,7 +41,8 @@ void Animation::render(float x, float y)
     images[currentFrame].setCoords(x, y);
     images[currentFrame].render(renderer);
 
-    if (frameTimer.getTicks() >= frameSecs)
+    double secs = frameTimer.getTicks() / 1000;
+    if (secs >= frameSecs)
     {
         currentFrame += 1;
         if (currentFrame >= images.size())
@@ -49,4 +51,14 @@ void Animation::render(float x, float y)
         }
         frameTimer.stop();
     }
+}
+
+float Animation::getWidth()
+{
+    return images[0].getWidth();
+}
+
+float Animation::getHeight()
+{
+    return images[0].getHeight();
 }

@@ -6,22 +6,25 @@
 #include <cmath>
 #include <Image.h>
 #include <Utilities.h>
+#include <CelestialObject.h>
+#include <sstream>
 
 class Overlay
 {
 private:
     SDL_Renderer *renderer;
-    TTF_Font *smallFont;
+    TTF_Font *font, *smallFont;
     SDL_Color textColor;
     float width, height;
-    Image focusedTxt, modeTxt, dateTxt, rateTxt;
+    Image radiusTxt, massTxt, velocityTxt, kineticTxt, potentialTxt, rTxt, mTxt, vTxt, kTxt, pTxt, focusedTxt, modeTxt, dateTxt, rateTxt;
     double simSecs, irlSecs;
 
 public:
     Overlay();
     Overlay(SDL_Renderer *renderer, int width, int height);
-    void displayTimeRate(int rate, int zoom);
-    void displaySimulationDate(int rate, int secs, int zoom);
-    void displaySimulationStatus(bool paused, bool editing, int zoom);
-    void displayFocusedObject(string name, string objType, int zoom);
+    void displayTimeRate(int rate);
+    void displaySimulationDate(int rate, int secs);
+    void displaySimulationStatus(bool paused, bool editing);
+    void displayFocusedObject(string name, string objType);
+    void displayObjectInfo(CelestialObject obj, int x, int y, int timeRate);
 };

@@ -1,16 +1,22 @@
 #include <Frame.h>
 
-Frame::Frame(string name, int x, int y, int w, int h)
+Frame::Frame(SDL_Renderer *renderer, string name, string file, int x, int y, int w, int h)
 {
+    this->renderer = renderer;
     this->name = name;
+    this->file = file;
     rect = {x, y, w, h};
+    object = Animation(renderer, file, 1, 0.1);
+    object.multiplier = (1 / object.getWidth()) * (w - 50);
+    object.loadFrames();
 }
 
-void Frame::display(SDL_Renderer *renderer, float xscroll, float yscroll)
+void Frame::display(float xscroll, float yscroll)
 {
     SDL_Rect tempRect = {rect.x - xscroll, rect.y - yscroll, rect.w, rect.h};
     SDL_RenderDrawLine(renderer, tempRect.x + 5, tempRect.y + tempRect.h, tempRect.x + tempRect.w - 5, tempRect.y + tempRect.h);
     SDL_RenderDrawLine(renderer, tempRect.x + tempRect.w - 1, tempRect.y + 5, tempRect.x + tempRect.w - 1, tempRect.y + tempRect.h - 5);
+    object.render(tempRect.x + tempRect.w / 2 - object.getWidth() / 2, tempRect.y + tempRect.h / 2 - object.getHeight() / 2);
 }
 
 string Frame::getName()
@@ -18,9 +24,12 @@ string Frame::getName()
     return name;
 }
 
-SDL_Rect *Frame::getRect(float xscroll, float yscroll)
+string Frame::getFile()
 {
-    rect.x -= xscroll;
-    rect.y -= yscroll;
-    return &rect;
+    return file;
+}
+
+SDL_Rect Frame::getRect()
+{
+    return rect;
 }

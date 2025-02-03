@@ -1,6 +1,5 @@
 #pragma once
-#include <iostream>
-#include <SDL2/SDL.h>
+#include <ctime>
 
 class Timer
 {
@@ -12,14 +11,13 @@ public:
     void pause();
     void unpause();
 
-    Uint32 getTicks();
-    bool isStarted();
-    bool isPaused();
+    double getTicks() const; // Returns elapsed time in milliseconds
+    bool isStarted() const;
+    bool isPaused() const;
 
 private:
-    Uint32 mStartTicks;
-    Uint32 mPausedTicks;
-
-    bool mPaused;
-    bool mStarted;
+    std::clock_t mStartTime; // Start time in clock ticks
+    double mPausedDuration;  // Total paused duration in milliseconds
+    bool mStarted;           // Is the timer running?
+    bool mPaused;            // Is the timer paused?
 };

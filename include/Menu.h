@@ -9,6 +9,8 @@
 #include <Vector.h>
 #include <Animation.h>
 #include <Transition.h>
+#include <Particles.h>
+#include <Timer.h>
 
 using namespace std;
 
@@ -22,6 +24,9 @@ private:
     Animation titleTxtAnimation;
     Image pointerCursor, handCursor, backgroundImg, titleTxt, newTxt, loadTxt, settingsTxt, quitTxt, newHoverTxt, loadHoverTxt, settingsHoverTxt, quitHoverTxt;
     bool hovering;
+
+    Timer stepTimer;
+    double timeStep;
 
 public:
     Transition transition;

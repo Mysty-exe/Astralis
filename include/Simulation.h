@@ -27,18 +27,21 @@ class Simulation
 {
 private:
     SDL_Renderer *renderer;
+    TTF_Font *bigFont, *smallFont;
     float width, height, gameWidth, gameHeight;
     string dragState, errorColor;
     SimulationState simState;
-    bool pause, editing;
+    bool pause, editing, view, distance, error;
     int zoom;
-    float zoomFactor;
+    float zoomFactor, distanceScroll, distanceMaxScroll;
+
+    TTF_Font *font;
 
     bool pointer;
-    CelestialObject sun, earth, mars, neptune, rogue, moon;
     vector<CelestialObject> objects, editingObjects;
 
-    Image pointerCursor, handCursor, backgroundImg, pausedTxt, dateTxt, rateTxt, returnTxt, yesTxt, noTxt, yesHoverTxt, noHoverTxt;
+    Animation background;
+    Image pointerCursor, handCursor, nameTxt, pausedTxt, dateTxt, rateTxt, returnTxt, yesTxt, noTxt, yesHoverTxt, noHoverTxt, distancesTxt, distanceNameTxt, distanceTxt;
     Sidebar sidebar;
     Overlay overlay;
     Transition transition;
@@ -49,6 +52,7 @@ private:
     Uint64 NOW, LAST;
     double timeStep;
 
+    float viewOffset, viewStart;
     Vector panningOffset, zoomOffset;
     int selectedObject;
 
@@ -60,9 +64,11 @@ public:
     void drawCursor(Events events);
     void drawBackground();
     void eventsHandler(Events events);
+    void info(Events events);
+    void distances(Events events);
+    void viewState(Events events);
     string returnScreen(Events events, string state);
     void editScreen(Events events);
-    void infoScreen(Events events);
     void mainScreen(Events events);
     string runSimulation(Events events, string state);
 };

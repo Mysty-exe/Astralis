@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <math.h>
+#define PI 3.14159265358979323846
 
 using namespace std;
 
@@ -35,5 +37,7 @@ public:
     long double magnitude();
     long double distance(Vector other);
     Vector normalize();
+    double getRadians();
+    double getAngle();
     void display();
 };

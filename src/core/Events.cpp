@@ -11,6 +11,7 @@ Events::Events()
     mousePos = Vector(0, 0);
     mouseOffset = Vector(0, 0);
     mouseWheel = Vector(0, 0);
+    startClickPos = {0, 0};
     input = "";
     keys = SDL_GetKeyboardState(NULL);
 }
@@ -39,6 +40,7 @@ void Events::getEvents(SDL_Event event)
         {
             if (event.button.button == SDL_BUTTON_LEFT)
             {
+                startClickPos = {mousePos.x, mousePos.y};
                 holdingClick = true;
             }
         }
@@ -100,6 +102,10 @@ void Events::getEvents(SDL_Event event)
             {
                 specialKeys.push_back(ENTER);
             }
+            if (event.key.keysym.sym == SDLK_LSHIFT || event.key.keysym.sym == SDLK_RSHIFT)
+            {
+                specialKeys.push_back(SHIFT);
+            }
         }
     }
 
@@ -139,8 +145,13 @@ void Events::getEvents(SDL_Event event)
     {
         specialHoldKeys.push_back(ESCAPE);
     }
-    if (keys[SDL_SCANCODE_RETURN]) {
+    if (keys[SDL_SCANCODE_RETURN])
+    {
         specialHoldKeys.push_back(ENTER);
+    }
+    if (keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT])
+    {
+        specialHoldKeys.push_back(SHIFT);
     }
 }
 

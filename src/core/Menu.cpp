@@ -14,7 +14,7 @@ Menu::Menu(SDL_Renderer *renderer, string title, int width, int height)
     pointerCursor.loadFromFile(renderer, "assets/cursors/pointer.png", 2);
     handCursor.loadFromFile(renderer, "assets/cursors/hand.png", 2);
 
-    titleTxtAnimation = Animation(renderer, "assets/Menu Text Animation", 2, 75);
+    titleTxtAnimation = Animation(renderer, "assets/Menu Text Animation", 2, 0.1);
 
     newTxt.loadFromFile(renderer, "assets/Menu Buttons/new.png", 1.5);
     newTxt.setCoords(width / 2 - newTxt.getWidth() / 2, height / 3);
@@ -39,6 +39,8 @@ Menu::Menu(SDL_Renderer *renderer, string title, int width, int height)
     transition = Transition(renderer, width, height, 1);
 
     hovering = false;
+    timeStep = 0;
+    stepTimer.start();
 }
 
 void Menu::drawCursor(int mouseX, int mouseY)
@@ -59,6 +61,8 @@ void Menu::drawCursor(int mouseX, int mouseY)
 string Menu::runMenu(Events events, string state)
 {
     SDL_Point point = events.getPoint();
+    timeStep = stepTimer.getTicks() / 1000.0f;
+    stepTimer.start();
 
     if (transition.transitionState != "In")
     {
@@ -70,7 +74,7 @@ string Menu::runMenu(Events events, string state)
         if (SDL_PointInRect(&point, newTxt.getRect()))
         {
             newHoverTxt.render(renderer);
-            if (events.leftClick)
+            if (events.leftClick && SDL_PointInRect(&events.startClickPos, newTxt.getRect()))
             {
                 state = "Simulation";
             }
@@ -104,7 +108,7 @@ string Menu::runMenu(Events events, string state)
         if (SDL_PointInRect(&point, quitTxt.getRect()))
         {
             quitHoverTxt.render(renderer);
-            if (events.leftClick)
+            if (events.leftClick && SDL_PointInRect(&events.startClickPos, quitTxt.getRect()))
             {
                 state = "Quit";
             }
@@ -114,12 +118,13 @@ string Menu::runMenu(Events events, string state)
         {
             quitTxt.render(renderer);
         }
+
+        drawCursor(events.mousePos.x, events.mousePos.y);
+        hovering = false;
     }
 
     transition.runTransition();
-    drawCursor(events.mousePos.x, events.mousePos.y);
 
-    hovering = false;
     SDL_RenderPresent(renderer);
 
     return state;

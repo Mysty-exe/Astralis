@@ -3,18 +3,22 @@
 #include <string>
 #include <SDL.h>
 #include <Image.h>
+#include <Animation.h>
 
 using namespace std;
 
 class Frame
 {
 private:
-    string name;
+    SDL_Renderer *renderer;
+    string name, file;
     SDL_Rect rect;
 
 public:
-    Frame(string name, int x, int y, int w, int h);
-    void display(SDL_Renderer *renderer, float xscroll, float yscroll);
+    Animation object;
+    Frame(SDL_Renderer *renderer, string name, string file, int x, int y, int w, int h);
+    void display(float xscroll, float yscroll);
     string getName();
-    SDL_Rect *getRect(float xscroll, float yscroll);
+    string getFile();
+    SDL_Rect getRect();
 };

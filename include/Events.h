@@ -20,6 +20,7 @@ enum Keys
     SPACE,
     ESCAPE,
     ENTER,
+    SHIFT,
     NONE
 };
 
@@ -31,6 +32,7 @@ public:
     bool leftClick, rightClick, holdingClick;
     vector<Keys> specialHoldKeys, specialKeys;
     Vector mousePos, mouseOffset, mouseWheel;
+    SDL_Point startClickPos;
     string input;
     const Uint8 *keys;
 

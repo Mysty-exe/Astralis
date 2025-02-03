@@ -70,7 +70,7 @@ void TextInput::render(Events events, int maxWidth, float xscroll, float yscroll
 {
     SDL_Point point = events.getPoint();
 
-    if (events.leftClick && SDL_PointInRect(&point, &rect))
+    if (events.leftClick && SDL_PointInRect(&point, &rect) && SDL_PointInRect(&events.startClickPos, &rect))
     {
         activated = not activated;
         if (activated)

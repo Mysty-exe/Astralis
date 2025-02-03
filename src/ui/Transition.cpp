@@ -34,21 +34,25 @@ string Transition::runTransition()
             pixelateTimer.start();
         }
 
-        if (pixelateTimer.getTicks() >= 0.05)
+        if (pixelateTimer.getTicks() / 1000 >= 0.05)
         {
             pixelateTimer.stop();
 
-            if (locations.size() <= 0 && !holdTimer.isStarted())
+            for (int i = 0; i < 50; i++)
             {
-                transitionState = "Hold";
-                holdTimer.start();
-            }
-            else if (locations.size() > 0)
-            {
-                transitionState = "In";
-                int random = rand() % locations.size();
-                drawLocations.push_back(locations[random]);
-                locations.erase(locations.begin() + random);
+                if (locations.size() <= 0 && !holdTimer.isStarted())
+                {
+                    transitionState = "Hold";
+                    holdTimer.start();
+                    break;
+                }
+                else if (locations.size() > 0)
+                {
+                    transitionState = "In";
+                    int random = rand() % locations.size();
+                    drawLocations.push_back(locations[random]);
+                    locations.erase(locations.begin() + random);
+                }
             }
         }
     }
@@ -60,22 +64,25 @@ string Transition::runTransition()
             pixelateTimer.start();
         }
 
-        if (pixelateTimer.getTicks() >= 0.05)
+        if (pixelateTimer.getTicks() / 1000 >= 0.05)
         {
             pixelateTimer.stop();
-            if (drawLocations.size() <= 0)
+            for (int i = 0; i < 50; i++)
             {
-                transitionState = "Done";
-            }
-            else
-            {
-                int random = rand() % drawLocations.size();
-                drawLocations.erase(drawLocations.begin() + random);
+                if (drawLocations.size() <= 0)
+                {
+                    transitionState = "Done";
+                }
+                else
+                {
+                    int random = rand() % drawLocations.size();
+                    drawLocations.erase(drawLocations.begin() + random);
+                }
             }
         }
     }
 
-    if (holdTimer.getTicks() >= holdSpeed * 1000)
+    if (holdTimer.getTicks() / 1000 >= holdSpeed)
     {
         transitionState = "Out";
         holdTimer.stop();

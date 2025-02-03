@@ -17,11 +17,23 @@ vector<pair<Vector, Vector>> Utilities::getZoomScales(float width, float height)
 
 vector<vector<string>> Utilities::getStellarObjects()
 {
-    vector<string> stars = {"Stars", "Star", "Star"};
-    vector<string> planets = {"Planets", "Planet", "Planet", "Planet", "Planet", "Planet"};
-    // vector<string> moons = {"Moons", "Moon", "Moon", "Moon"};
-    // vector<string> asteroids = {"Asteroids", "Asteroid"};
-    vector<vector<string>> stellarObjects = {stars, planets};
+    vector<string> stars = {"Stars", "Star", "Star", "Star"};
+    vector<string> planets = {"Planets", "Planet", "Planet", "Planet", "Planet", "Planet", "Planet", "Planet", "Planet"};
+    vector<string> moons = {"Moons", "Moon", "Moon", "Moon"};
+    vector<string> asteroids = {"Asteroids", "Asteroid", "Asteroid", "Asteroid"};
+    vector<string> comets = {"Comets", "Comet"};
+    vector<vector<string>> stellarObjects = {stars, planets, moons, asteroids, comets};
+    return stellarObjects;
+}
+
+vector<vector<string>> Utilities::getStellarFiles()
+{
+    vector<string> stars = {"Stars", "assets/Objects/Stars/Red Star", "assets/Objects/Stars/White Star", "assets/Objects/Stars/Blue Star"};
+    vector<string> planets = {"Planets", "assets/Objects/Planets/Mercury", "assets/Objects/Planets/Venus", "assets/Objects/Planets/Earth", "assets/Objects/Planets/Mars", "assets/Objects/Planets/Jupiter", "assets/Objects/Planets/Uranus", "assets/Objects/Planets/Neptune", "assets/Objects/Planets/Pluto"};
+    vector<string> moons = {"Moons", "assets/Objects/Moons/Moon", "assets/Objects/Moons/Europa", "assets/Objects/Moons/Triton"};
+    vector<string> asteroids = {"Asteroids", "assets/Objects/Asteroids/Asteroid 1", "assets/Objects/Asteroids/Asteroid 2", "assets/Objects/Asteroids/Asteroid 3"};
+    vector<string> comets = {"Comets", "assets/Objects/Comet"};
+    vector<vector<string>> stellarObjects = {stars, planets, moons, asteroids, comets};
     return stellarObjects;
 }
 
@@ -53,16 +65,30 @@ vector<float> Utilities::getSubdividor()
     return subdividors;
 }
 
-vector<pair<string, float>> Utilities::getTimeRates()
+vector<string> Utilities::getUnits()
 {
-    vector<pair<string, float>> timeRates = {};
-    timeRates.push_back(make_pair("sec", 1));
-    timeRates.push_back(make_pair("min", 60));
-    timeRates.push_back(make_pair("hour", 3600));
-    timeRates.push_back(make_pair("day", 3600));
-    timeRates.push_back(make_pair("week", 3600));
-    timeRates.push_back(make_pair("month", 3600));
-    timeRates.push_back(make_pair("year", 3600));
+    vector<string> units = {};
+    units.push_back("m/s");
+    units.push_back("m/min");
+    units.push_back("m/h");
+    units.push_back("m/h");
+    units.push_back("m/h");
+    units.push_back("m/h");
+    units.push_back("m/h");
+
+    return units;
+}
+
+vector<pair<string, double>> Utilities::getTimeRates()
+{
+    vector<pair<string, double>> timeRates = {};
+    timeRates.push_back(make_pair("sec", 1.0));
+    timeRates.push_back(make_pair("min", 60.0));
+    timeRates.push_back(make_pair("hour", 3600.0));
+    timeRates.push_back(make_pair("day", 3600.0));
+    timeRates.push_back(make_pair("week", 3600.0));
+    timeRates.push_back(make_pair("month", 3600.0));
+    timeRates.push_back(make_pair("year", 3600.0));
 
     return timeRates;
 }
@@ -87,9 +113,9 @@ float Utilities::getOrbitalVelocity(float orbitingMass, float distance)
     return vel;
 }
 
-double Utilities::getGravityForce(float mass1, float mass2, float distance, float rate, double timeStep)
+double Utilities::getGravityForce(float mass1, float mass2, float distance, float rate)
 {
-    return (Utilities::g * (pow(rate, 2)) * mass1 * mass2) / pow(distance, 2);
+    return (Utilities::g * (pow(rate, 2))*mass1 * mass2) / pow(distance, 2);
 }
 
 void Utilities::drawCircle(SDL_Renderer *renderer, int displayX, int displayY, int radius)
@@ -103,7 +129,7 @@ void Utilities::drawCircle(SDL_Renderer *renderer, int displayX, int displayY, i
 
 long double Utilities::scaleDistance(long double dist)
 {
-    return dist / 2000;
+    return dist / 5000.0;
 }
 
 long double Utilities::scaleMass(long double mass)
@@ -113,7 +139,7 @@ long double Utilities::scaleMass(long double mass)
 
 long double Utilities::getRealDistance(long double dist)
 {
-    return dist * 2000;
+    return dist * 5000.0;
 }
 
 long double Utilities::getRealMass(long double mass)
@@ -141,46 +167,58 @@ string Utilities::removeTrailingZeroes(string number)
 
 bool Utilities::validateRadius(string radius)
 {
-    int decimal = 0;
-    if (radius.length() == 0)
+    try
+    {
+        long double r = stold(radius);
+    }
+    catch (const std::exception &e)
     {
         return false;
-    }
-
-    for (int i = 0; i < radius.length(); i++)
-    {
-        if (radius[i] == '.')
-        {
-            decimal++;
-        }
-        if ((!isdigit(radius[i]) && radius[i] != '.') || decimal > 1)
-        {
-            return false;
-        }
     }
     return true;
 }
 
 bool Utilities::validateMass(string mass)
 {
-    int decimal = 0;
-    if (mass.length() == 0)
+    try
+    {
+        long double r = stold(mass);
+    }
+    catch (const std::exception &e)
     {
         return false;
     }
+    return true;
+}
 
-    for (int i = 0; i < mass.length(); i++)
+bool Utilities::validateVelocity(string vel)
+{
+    try
     {
-        if (!isdigit(mass[i]) || decimal > 1)
-        {
-            return false;
-        }
-        if (mass[i] == '.')
-        {
-            decimal++;
-        }
+        long double v = stold(vel);
+    }
+    catch (const std::exception &e)
+    {
+        return false;
     }
     return true;
+}
+
+bool Utilities::validateDirection(string degrees)
+{
+    try
+    {
+        long double d = stold(degrees);
+        if (d >= -180 && d <= 180)
+        {
+            return true;
+        }
+    }
+    catch (const std::exception &e)
+    {
+    }
+
+    return false;
 }
 
 string Utilities::getExponentForm(string num)

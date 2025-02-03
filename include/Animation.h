@@ -15,13 +15,15 @@ private:
     string folder;
 
 public:
-    SDL_Renderer* renderer;
+    SDL_Renderer *renderer;
     vector<Image> images;
-    int multiplier, currentFrame, frameSecs;
+    double multiplier, currentFrame, frameSecs;
     Timer frameTimer;
 
     Animation();
-    Animation(SDL_Renderer *renderer, string folder, int multiplier, int frameSecs);
+    Animation(SDL_Renderer *renderer, string folder, double multiplier, double frameSecs);
     void loadFrames();
     void render(float x, float y);
+    float getWidth();
+    float getHeight();
 };

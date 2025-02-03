@@ -7,7 +7,7 @@ TARGET = build/main.exe
 
 # Source files
 SRC_FILES = src/main.cpp \
-			src/core/StateManager.cpp src/core/Menu.cpp src/core/Simulation.cpp src/core/Sidebar.cpp src/core/Events.cpp src/core/Timer.cpp \
+			src/core/StateManager.cpp src/core/Menu.cpp src/core/Simulation.cpp src/core/Sidebar.cpp src/core/Particles.cpp src/core/Events.cpp src/core/Timer.cpp \
             src/entities/CelestialObject.cpp \
 			src/physics/Vector.cpp src/physics/Utilities.cpp \
 			src/ui/Image.cpp src/ui/Overlay.cpp src/ui/Frame.cpp src/ui/Animation.cpp src/ui/Transition.cpp src/ui/Button.cpp src/ui/TextInput.cpp
