@@ -24,6 +24,7 @@ public:
     Animation(SDL_Renderer *renderer, string folder, double multiplier, double frameSecs);
     void loadFrames();
     void render(float x, float y);
+    void freeAll();
     float getWidth();
     float getHeight();
 };

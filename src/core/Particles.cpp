@@ -31,20 +31,26 @@ Particles::Particles(string color)
         g = 0;
         b = 255;
     }
+    if (color == "Grey")
+    {
+        r = 200;
+        g = 200;
+        b = 200;
+    }
 }
 
-void Particles::addParticle(string type, double x, double y, Vector direction)
+void Particles::addParticle(string type, double x, double y, Vector direction, float explosion)
 {
     float velX, velY;
-    if (type == "Comet")
+    if (type == "Comet" || type == "Asteroid")
     {
         velX = direction.normalize().x * 100;
         velY = direction.normalize().y * 100;
     }
     else
     {
-        velX = (direction.normalize().x + (-20 + (rand() % 40)) / 10) * 50;
-        velY = (direction.normalize().y + (-20 + (rand() % 40)) / 10) * 50;
+        velX = (direction.normalize().x + (-20 + (rand() % 40)) / 10) * explosion;
+        velY = (direction.normalize().y + (-20 + (rand() % 40)) / 10) * explosion;
     }
 
     Particle particle;
@@ -57,7 +63,7 @@ void Particles::addParticle(string type, double x, double y, Vector direction)
     particles.push_back(particle);
 }
 
-void Particles::renderParticles(SDL_Renderer *renderer, string type, double x, double y, Vector panningOffset, Vector direction, double timeStep, bool started)
+void Particles::renderParticles(SDL_Renderer *renderer, string type, double x, double y, Vector panningOffset, Vector direction, float explosion, double timeStep, bool started)
 {
     if (!particleTimer.isStarted())
     {
@@ -65,7 +71,7 @@ void Particles::renderParticles(SDL_Renderer *renderer, string type, double x, d
     }
     if (particleTimer.getTicks() / 1000 >= 0.01 && started)
     {
-        addParticle(type, x, y, direction);
+        addParticle(type, x, y, direction, explosion);
         particleTimer.start();
     }
     vector<int> indexes = {};

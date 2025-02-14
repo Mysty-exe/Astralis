@@ -1,7 +1,6 @@
 #include <Utilities.h>
 
 float Utilities::g = 6.674 * (1 / pow(10, 8));
-int Utilities::numObjects = 1;
 
 vector<pair<Vector, Vector>> Utilities::getZoomScales(float width, float height)
 {
@@ -126,26 +125,6 @@ void Utilities::drawCircle(SDL_Renderer *renderer, int displayX, int displayY, i
         SDL_RenderDrawLine(renderer, -dx + displayX, y + displayY, dx + displayX, y + displayY);
     }
 };
-
-long double Utilities::scaleDistance(long double dist)
-{
-    return dist / 5000.0;
-}
-
-long double Utilities::scaleMass(long double mass)
-{
-    return mass / pow(10, 24);
-}
-
-long double Utilities::getRealDistance(long double dist)
-{
-    return dist * 5000.0;
-}
-
-long double Utilities::getRealMass(long double mass)
-{
-    return mass * pow(10, 24);
-}
 
 string Utilities::removeTrailingZeroes(string number)
 {
@@ -274,4 +253,29 @@ string Utilities::getExponentForm(string num)
     }
 
     return num;
+}
+
+pair<string, string> Utilities::parseInput(string input)
+{
+    string currentState = "Base";
+    string base = "";
+    string exponent = "";
+
+    for (int x = 0; x < input.length(); x++)
+    {
+        if (isdigit(input[x]) || input[x] == '.' || input[x] == '-' || input[x] == '+')
+        {
+            (currentState == "Base") ? base += input[x] : exponent += input[x];
+        }
+        else if (input[x] == 'e' || input[x] == 'E')
+        {
+            currentState = "Exponent";
+        }
+    }
+    if (exponent.length() == 0)
+    {
+        exponent = "0";
+    }
+
+    return make_pair(base.c_str(), exponent.c_str());
 }

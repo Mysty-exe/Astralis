@@ -4,12 +4,13 @@ Transition::Transition()
 {
 }
 
-Transition::Transition(SDL_Renderer *renderer, int width, int height, int holdSpeed)
+Transition::Transition(SDL_Renderer *renderer, int width, int height, double holdSpeed)
 {
     this->renderer = renderer;
     this->width = width;
     this->height = height;
     this->holdSpeed = holdSpeed;
+    transitionState = "Done";
     getPossibleLocations();
 }
 

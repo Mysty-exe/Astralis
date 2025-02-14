@@ -21,6 +21,6 @@ public:
     Timer particleTimer;
     Particles();
     Particles(string color);
-    void addParticle(string type, double startX, double startY, Vector direction);
-    void renderParticles(SDL_Renderer *renderer, string type, double startX, double startY, Vector panningOffset, Vector direction, double timeStep, bool started);
+    void addParticle(string type, double startX, double startY, Vector direction, float explosion);
+    void renderParticles(SDL_Renderer *renderer, string type, double startX, double startY, Vector panningOffset, Vector direction, float explosion, double timeStep, bool started);
 };

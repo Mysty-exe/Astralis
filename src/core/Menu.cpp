@@ -10,6 +10,8 @@ Menu::Menu(SDL_Renderer *renderer, string title, int width, int height)
     this->width = width;
     this->height = height;
 
+    clickSound = Mix_LoadWAV("assets/Audio/click.wav");
+
     backgroundImg.loadFromFile(renderer, "assets/Backgrounds/menuBackground.png", 1);
     pointerCursor.loadFromFile(renderer, "assets/cursors/pointer.png", 2);
     handCursor.loadFromFile(renderer, "assets/cursors/hand.png", 2);
@@ -26,15 +28,15 @@ Menu::Menu(SDL_Renderer *renderer, string title, int width, int height)
     loadHoverTxt.loadFromFile(renderer, "assets/Menu Buttons/loadHover.png", 1.5);
     loadHoverTxt.setCoords(width / 2 - loadTxt.getWidth() / 2, newTxt.y + height / 6);
 
-    settingsTxt.loadFromFile(renderer, "assets/Menu Buttons/settings.png", 1.5);
-    settingsTxt.setCoords(width / 2 - settingsTxt.getWidth() / 2, loadTxt.y + height / 6);
-    settingsHoverTxt.loadFromFile(renderer, "assets/Menu Buttons/settingsHover.png", 1.5);
-    settingsHoverTxt.setCoords(width / 2 - settingsTxt.getWidth() / 2, loadTxt.y + height / 6);
+    controlsTxt.loadFromFile(renderer, "assets/Menu Buttons/controls.png", 1.5);
+    controlsTxt.setCoords(width / 2 - controlsTxt.getWidth() / 2, loadTxt.y + height / 6);
+    controlsHoverTxt.loadFromFile(renderer, "assets/Menu Buttons/controlsHover.png", 1.5);
+    controlsHoverTxt.setCoords(width / 2 - controlsTxt.getWidth() / 2, loadTxt.y + height / 6);
 
     quitTxt.loadFromFile(renderer, "assets/Menu Buttons/quit.png", 1.5);
-    quitTxt.setCoords(width / 2 - quitTxt.getWidth() / 2, settingsTxt.y + height / 6);
+    quitTxt.setCoords(width / 2 - quitTxt.getWidth() / 2, controlsTxt.y + height / 6);
     quitHoverTxt.loadFromFile(renderer, "assets/Menu Buttons/quitHover.png", 1.5);
-    quitHoverTxt.setCoords(width / 2 - quitTxt.getWidth() / 2, settingsTxt.y + height / 6);
+    quitHoverTxt.setCoords(width / 2 - quitTxt.getWidth() / 2, controlsTxt.y + height / 6);
 
     transition = Transition(renderer, width, height, 1);
 
@@ -76,7 +78,8 @@ string Menu::runMenu(Events events, string state)
             newHoverTxt.render(renderer);
             if (events.leftClick && SDL_PointInRect(&events.startClickPos, newTxt.getRect()))
             {
-                state = "Simulation";
+                Mix_PlayChannel(-1, clickSound, 0);
+                state = "New";
             }
             hovering = true;
         }
@@ -88,6 +91,11 @@ string Menu::runMenu(Events events, string state)
         if (SDL_PointInRect(&point, loadTxt.getRect()))
         {
             loadHoverTxt.render(renderer);
+            if (events.leftClick && SDL_PointInRect(&events.startClickPos, loadTxt.getRect()))
+            {
+                Mix_PlayChannel(-1, clickSound, 0);
+                state = "Load";
+            }
             hovering = true;
         }
         else
@@ -95,14 +103,19 @@ string Menu::runMenu(Events events, string state)
             loadTxt.render(renderer);
         }
 
-        if (SDL_PointInRect(&point, settingsTxt.getRect()))
+        if (SDL_PointInRect(&point, controlsTxt.getRect()))
         {
-            settingsHoverTxt.render(renderer);
+            controlsHoverTxt.render(renderer);
+            if (events.leftClick && SDL_PointInRect(&events.startClickPos, controlsTxt.getRect()))
+            {
+                Mix_PlayChannel(-1, clickSound, 0);
+                state = "Control";
+            }
             hovering = true;
         }
         else
         {
-            settingsTxt.render(renderer);
+            controlsTxt.render(renderer);
         }
 
         if (SDL_PointInRect(&point, quitTxt.getRect()))
@@ -110,6 +123,7 @@ string Menu::runMenu(Events events, string state)
             quitHoverTxt.render(renderer);
             if (events.leftClick && SDL_PointInRect(&events.startClickPos, quitTxt.getRect()))
             {
+                Mix_PlayChannel(-1, clickSound, 0);
                 state = "Quit";
             }
             hovering = true;

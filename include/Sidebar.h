@@ -10,6 +10,8 @@
 #include <Utilities.h>
 #include <Button.h>
 #include <TextInput.h>
+#include <Simulation.h>
+#include <CheckBox.h>
 #define PI 3.14159265358979323846
 
 class Sidebar
@@ -25,9 +27,11 @@ private:
 
     TTF_Font *bigFont, *font, *smallFont;
     SDL_Color color;
-    Image circle, inArrow, outArrow, sidebarTxt, objectTxt, objectTypeTxt, distancesTxt, distanceNameTxt, distanceTxt, headerTxt, nameTxt, radiusTxt, radiusHelperTxt, massTxt, massHelperTxt, velocityTxt, velocityHelperTxt, directionTxt, degreeHelperTxt, kmTxt, kgTxt, msTxt, degreeTxt;
+    Image check;
+    Image circle, inArrow, outArrow, sidebarTxt, objectTxt, objectTypeTxt, distancesTxt, distanceNameTxt, distanceTxt, headerTxt, nameTxt, radiusTxt, radiusHelperTxt, massTxt, massHelperTxt, velocityTxt, velocityHelperTxt, directionTxt, degreeHelperTxt, particlesTxt, particlesHelperTxt, kmTxt, kgTxt, msTxt, degreeTxt;
     TextInput nameInput, radiusInput, massInput, velocityInput, degreeInput;
     string header;
+    CheckBox checkBox;
 
     vector<Image> headers;
     vector<Frame> frames;
@@ -35,7 +39,7 @@ private:
 public:
     int editingObject, selectedObject;
     bool viewState, addState, editState, distanceState, addActivated, editActivated, sliderActivated;
-    float scroll, viewScroll, distanceScroll, maxScroll, viewMaxScroll, distanceMaxScroll;
+    float scroll, viewScroll, editScroll, editMaxScroll, distanceScroll, maxScroll, viewMaxScroll, distanceMaxScroll;
     Button deleteBtn, duplicateBtn;
     Sidebar();
     Sidebar(SDL_Renderer *renderer, int width, int height);
@@ -44,14 +48,14 @@ public:
     vector<Frame> getFrames();
     void setHeader(string header);
     void setFrames();
-    void viewObjects(Events events, vector<CelestialObject> &objects, double deltaTime, double timeRate);
-    void addObject(Events events, Vector spawnLoc, vector<CelestialObject> &objects, double timeRate, double deltaTime);
-    void editObject(Events events, Vector spawnLoc, vector<CelestialObject> &objects, double timeRate);
-    void distancesObject(Events events, vector<CelestialObject> &objects, double deltaTime);
-    void runSidebar(Events events, Vector spawnLoc, vector<CelestialObject> &objects, double timeRate, double timeStep);
-    bool checkHover(SDL_Point point, vector<CelestialObject> objects);
-    void updateObject(Events events, vector<CelestialObject> &objects, double deltaTime);
-    void setInputs(CelestialObject &object, double timeRate);
+    void viewObjects(Events events, Simulation &sim, Vector &panningOffset, double deltaTime, double timeRate);
+    void addObject(Events events, Vector spawnLoc, Simulation &sim, double timeRate, double deltaTime);
+    void editObject(Events events, Vector spawnLoc, Simulation &sim, double timeRate, double deltaTime);
+    void distancesObject(Events events, Simulation &sim, double deltaTime);
+    void runSidebar(Events events, Vector spawnLoc, Simulation &sim, Vector &panningOffset, double timeRate, double timeStep);
+    bool checkHover(SDL_Point point, Simulation sim);
+    void updateObject(Events events, Simulation &sim, double deltaTime);
+    void setInputs(Simulation sim, CelestialObject &object, double timeRate);
     pair<string, string> parseInput(string input);
     void clearInputs();
     void reset();

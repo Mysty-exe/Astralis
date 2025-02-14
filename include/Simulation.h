@@ -4,71 +4,55 @@
 #include <SDL_ttf.h>
 #include <string>
 #include <cmath>
-#include <Events.h>
 #include <CelestialObject.h>
-#include <Timer.h>
 #include <vector>
-#include <Overlay.h>
-#include <Sidebar.h>
-#include <Frame.h>
-#include <Transition.h>
+#include <Timer.h>
+#include <Image.h>
 
 using namespace std;
 
 enum SimulationState
 {
-    MAIN,
+    SIMULATION,
     RETURN,
     EDITING,
-    INFO
+    INFOc
 };
 
 class Simulation
 {
-private:
-    SDL_Renderer *renderer;
-    TTF_Font *bigFont, *smallFont;
-    float width, height, gameWidth, gameHeight;
-    string dragState, errorColor;
-    SimulationState simState;
-    bool pause, editing, view, distance, error;
-    int zoom;
-    float zoomFactor, distanceScroll, distanceMaxScroll;
-
-    TTF_Font *font;
-
-    bool pointer;
-    vector<CelestialObject> objects, editingObjects;
-
-    Animation background;
-    Image pointerCursor, handCursor, nameTxt, pausedTxt, dateTxt, rateTxt, returnTxt, yesTxt, noTxt, yesHoverTxt, noHoverTxt, distancesTxt, distanceNameTxt, distanceTxt;
-    Sidebar sidebar;
-    Overlay overlay;
-    Transition transition;
-    SDL_Rect editingRect;
-
-    int focusedObject, currentTimeRate;
-
-    Uint64 NOW, LAST;
-    double timeStep;
-
-    float viewOffset, viewStart;
-    Vector panningOffset, zoomOffset;
-    int selectedObject;
-
 public:
-    Timer dateTimer, stepTimer;
+    SDL_Renderer *renderer;
+
+    string name;
+    SimulationState state;
+    int objectsNum;
+    vector<CelestialObject> objects;
+    double distRatio;
+    double simRadius;
+    Timer dateTimer;
+
+    TTF_Font *font, *smallFont;
+    double irlSecs, simSecs;
+    SDL_Color textColor;
+    Image focusedTxt, modeTxt, dateTxt, rateTxt, radiusTxt, massTxt, velocityTxt, kineticTxt, potentialTxt;
+    Image rTxt, mTxt, vTxt, kTxt, pTxt;
+
     Simulation();
-    Simulation(SDL_Renderer *renderer, int width, int height);
-    void resetSimulation();
-    void drawCursor(Events events);
-    void drawBackground();
-    void eventsHandler(Events events);
-    void info(Events events);
-    void distances(Events events);
-    void viewState(Events events);
-    string returnScreen(Events events, string state);
-    void editScreen(Events events);
-    void mainScreen(Events events);
-    string runSimulation(Events events, string state);
+    Simulation(SDL_Renderer *renderer, string name, double distRatio, double simRadius);
+    long double scaleDistance(long double dist);
+    long double scaleMass(long double mass);
+    long double getRealDistance(long double dist);
+    long double getRealMass(long double mass);
+    void scaleObjects(string n);
+    void applyForces(double timeStep, int timeRate);
+    void applyVelocities(double timeStep);
+    void calculateEnergy();
+    void display(Vector panningOffset, int timeRate, double timeStep);
+    void updateAllSizes();
+    void displayTimeRate(int rate);
+    void displaySimulationDate(int rate, int height);
+    void displaySimulationStatus(bool paused, bool editing);
+    void displayFocusedObject(string name, string objType);
+    void displayObjectInfo(CelestialObject obj, int x, int y, int timeRate);
 };

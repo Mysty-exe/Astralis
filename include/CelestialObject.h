@@ -34,27 +34,22 @@ public:
     long double updateRadius;
     Vector position;
     Vector velocity;
-    Vector acceleration;
     long double kineticEnergy;
     long double potentialEnergy;
     SDL_Rect rect, realRect;
-    bool ctrl, editing;
+    bool ctrl, editing, toggleParticles;
 
     Animation object, viewObject;
     Image arrow, nameTxt, trajectory;
     Particles particles;
     Vector particlePos;
+    float particleExplosion;
     Timer particleDurationTimer;
 
     CelestialObject();
     CelestialObject(SDL_Renderer *renderer, int width, int height, string name, string objType, string fileName);
     CelestialObject(SDL_Renderer *renderer, int width, int height, string n, string objType, string fileName, long double mass, long double radius, float x, float y, Vector vel);
     void setName(SDL_Renderer *renderer, string name);
-    void calculateEnergies(vector<CelestialObject> &objects);
-    static void applyForces(vector<CelestialObject> &objects, double timeStep, int timeRate);
-    static void applyVelocities(vector<CelestialObject> &objects, double timeStep);
-    static void display(SDL_Renderer *renderer, vector<CelestialObject> &objects, Vector panningOffset, int timeRate, double timeStep);
-    static void updateAllSizes(SDL_Renderer *renderer, vector<CelestialObject> &objects);
     void drawTrajectory(SDL_Renderer *renderer, vector<CelestialObject> objects, Vector panningOffset, int timeRate, double timeStep);
     void updateSizeGradually(SDL_Renderer *renderer, double timeStep);
     void updateSizeInstant(SDL_Renderer *renderer);

@@ -31,6 +31,14 @@ void Animation::loadFrames()
     }
 }
 
+void Animation::freeAll()
+{
+    for (Image image : images)
+    {
+        image.free();
+    }
+}
+
 void Animation::render(float x, float y)
 {
     if (!frameTimer.isStarted())

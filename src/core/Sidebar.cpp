@@ -14,6 +14,8 @@ Sidebar::Sidebar(SDL_Renderer *renderer, int width, int height)
 
     scrollableHeight = height;
     scroll = 0;
+    editScroll = 0;
+    editMaxScroll = 0;
     viewScroll = 0;
     distanceScroll = 0;
     maxScroll = 0;
@@ -49,11 +51,14 @@ Sidebar::Sidebar(SDL_Renderer *renderer, int width, int height)
     velocityHelperTxt.loadFromRenderedText(renderer, smallFont, "Ex: [100000] or [1e+5] m/s", {211, 211, 211});
     directionTxt.loadFromRenderedText(renderer, font, "Direction", {255, 255, 255});
     degreeHelperTxt.loadFromRenderedText(renderer, smallFont, "Ex: -180 - 180 degrees", {211, 211, 211});
+    particlesTxt.loadFromRenderedText(renderer, font, "Particle", {255, 255, 255});
+    particlesHelperTxt.loadFromRenderedText(renderer, smallFont, "Choose Whether You Want Particles", {211, 211, 211});
     kmTxt.loadFromRenderedText(renderer, smallFont, "km", {255, 255, 255});
     kgTxt.loadFromRenderedText(renderer, smallFont, "kg", {255, 255, 255});
     msTxt.loadFromRenderedText(renderer, smallFont, "m/s", {255, 255, 255});
     degreeTxt.loadFromRenderedText(renderer, smallFont, "degrees", {255, 255, 255});
     circle.loadFromFile(renderer, "assets/circle.png", 0.25);
+    check.loadFromFile(renderer, "assets/check.png", 1);
 
     nameInput = TextInput(renderer, "", {255, 255, 255});
     radiusInput = TextInput(renderer, "", {255, 255, 255});
@@ -63,6 +68,8 @@ Sidebar::Sidebar(SDL_Renderer *renderer, int width, int height)
 
     deleteBtn = Button(renderer, "Delete", {255, 255, 255}, 100);
     duplicateBtn = Button(renderer, "Duplicate", {255, 255, 255}, 100);
+
+    CheckBox checkBox = CheckBox(renderer, false, 30);
 
     addTransitionOffset = (width / 3) + 1;
     editTransitionOffset = -(width / 3);
@@ -80,7 +87,7 @@ void Sidebar::setHeader(string header)
 
 SDL_Rect *Sidebar::getRect()
 {
-    if (addState)
+    if (addState || viewState)
     {
         return &addRect;
     }
@@ -107,14 +114,14 @@ void Sidebar::setFrames()
     size = sidebarWidth / 2;
     i = 0;
 
-    for (vector<string> objects : Utilities::getStellarObjects())
+    for (vector<string> obj : Utilities::getStellarObjects())
     {
-        for (int ii = 0; ii < objects.size(); ii++)
+        for (int ii = 0; ii < obj.size(); ii++)
         {
             if (ii == 0)
             {
                 Image text;
-                text.loadFromRenderedText(renderer, font, objects[ii], color);
+                text.loadFromRenderedText(renderer, font, obj[ii], color);
                 text.setCoords(startX, startY);
                 headers.push_back(text);
                 startX = 0;
@@ -122,12 +129,12 @@ void Sidebar::setFrames()
             }
             else
             {
-                Frame frame = Frame(renderer, objects[ii], Utilities::getStellarFiles()[i][ii], startX, startY, size, size);
+                Frame frame = Frame(renderer, obj[ii], Utilities::getStellarFiles()[i][ii], startX, startY, size, size);
                 frames.push_back(frame);
                 startX = (startX == size) ? 0 : startX + size;
                 startY = (startX == 0) ? startY + size : startY;
 
-                if (ii == objects.size() - 1 && objects.size() % 2 == 0)
+                if (ii == obj.size() - 1 && obj.size() % 2 == 0)
                 {
                     startY += size;
                 }
@@ -143,7 +150,7 @@ void Sidebar::setFrames()
     maxScroll = (maxScroll < 0) ? 0 : maxScroll;
 }
 
-void Sidebar::viewObjects(Events events, vector<CelestialObject> &objects, double deltaTime, double timeRate)
+void Sidebar::viewObjects(Events events, Simulation &sim, Vector &panningOffset, double deltaTime, double timeRate)
 {
     SDL_Point point = events.getPoint();
 
@@ -159,24 +166,30 @@ void Sidebar::viewObjects(Events events, vector<CelestialObject> &objects, doubl
     int startY = (sidebarTxt.getRect()->y + viewScroll) + sidebarTxt.getRect()->h + 10;
     sidebarTxt.render(renderer, addTransitionOffset, 0);
 
-    for (int i = 0; i < objects.size(); i++)
+    for (int i = 0; i < sim.objects.size(); i++)
     {
         SDL_Rect rect = {20 - addTransitionOffset, startY - viewScroll, sidebarWidth - 40, 65};
         (SDL_PointInRect(&point, &rect))
             ? SDL_SetRenderDrawColor(renderer, 255, 255, 255, 50)
             : SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        if (events.leftClick)
+        sim.objects[i].editing = false;
+        if (events.leftClick && (SDL_PointInRect(&events.startClickPos, &rect)))
         {
-            editingObject = objects.size() - 1;
-            setInputs(objects[i], timeRate);
+            sim.objects[i].editing = true;
+            editingObject = sim.objects.size() - 1;
+            setInputs(sim, sim.objects[i], timeRate);
             addActivated = false;
             editActivated = true;
-            header = objects[i].name;
+            header = sim.objects[i].name;
             editState = true;
+            panningOffset = Vector(-sim.objects[i].position.x, -sim.objects[i].position.y);
+            panningOffset.x += width / 2.0;
+            panningOffset.y += height / 2.0;
+            viewState = false;
         }
         SDL_RenderFillRect(renderer, &rect);
-        objectTxt.loadFromRenderedText(renderer, smallFont, objects[i].name, {177, 156, 217});
-        objectTypeTxt.loadFromRenderedText(renderer, smallFont, objects[i].objType, {255, 255, 255});
+        objectTxt.loadFromRenderedText(renderer, smallFont, sim.objects[i].name, {177, 156, 217});
+        objectTypeTxt.loadFromRenderedText(renderer, smallFont, sim.objects[i].objType, {255, 255, 255});
         objectTxt.setCoords(rect.x + 10, rect.y + 10);
         objectTxt.render(renderer, addTransitionOffset, viewScroll);
         objectTypeTxt.setCoords(rect.x + 15, objectTxt.y + objectTxt.getHeight() + 5);
@@ -196,7 +209,7 @@ void Sidebar::viewObjects(Events events, vector<CelestialObject> &objects, doubl
     SDL_RenderDrawLine(renderer, width - 10, 5 + move, width - 10, 5 + (sidebarHeight / scrollableHeight * sidebarHeight) + move);
 }
 
-void Sidebar::addObject(Events events, Vector spawnLoc, vector<CelestialObject> &objects, double timeRate, double deltaTime)
+void Sidebar::addObject(Events events, Vector spawnLoc, Simulation &sim, double timeRate, double deltaTime)
 {
     SDL_Point point = events.getPoint();
 
@@ -224,17 +237,24 @@ void Sidebar::addObject(Events events, Vector spawnLoc, vector<CelestialObject> 
         {
             if (events.leftClick && SDL_PointInRect(&events.startClickPos, &rect))
             {
-                string name = "untitled-" + to_string(Utilities::numObjects);
+                for (CelestialObject &obj : sim.objects)
+                {
+                    obj.editing = false;
+                }
+                string name = "untitled-" + to_string(sim.objectsNum);
                 CelestialObject obj = CelestialObject(renderer, width, height, name, frame.getName(), frame.getFile());
+                obj.ctrl = true;
+                obj.editing = true;
                 obj.position = spawnLoc;
-                objects.push_back(obj);
-                editingObject = objects.size() - 1;
-                setInputs(objects[objects.size() - 1], timeRate);
+                sim.objects.push_back(obj);
+                sim.scaleObjects(obj.name);
+                editingObject = sim.objects.size() - 1;
+                setInputs(sim, sim.objects[sim.objects.size() - 1], timeRate);
                 addActivated = false;
                 editActivated = true;
-                header = frame.getName();
                 editState = true;
-                Utilities::numObjects++;
+                header = frame.getName();
+                sim.objectsNum++;
             }
         }
     }
@@ -253,10 +273,20 @@ void Sidebar::addObject(Events events, Vector spawnLoc, vector<CelestialObject> 
     SDL_RenderDrawLine(renderer, sidebarWidth - 10 - addTransitionOffset, 5 + move, sidebarWidth - 10 - addTransitionOffset, 5 + (sidebarHeight / scrollableHeight * sidebarHeight) + move);
 }
 
-void Sidebar::editObject(Events events, Vector spawnLoc, vector<CelestialObject> &objects, double timeRate)
+void Sidebar::editObject(Events events, Vector spawnLoc, Simulation &sim, double timeRate, double deltaTime)
 {
+    float scrollableHeight;
+    SDL_Point point = events.getPoint();
+
+    if (SDL_PointInRect(&point, &editRect))
+    {
+        editScroll -= events.mouseWheel.y * 100 * deltaTime;
+        editScroll = (editScroll < 0) ? 0 : editScroll;
+        editScroll = (editScroll > editMaxScroll) ? editMaxScroll : editScroll;
+    }
+
     headerTxt.loadFromRenderedText(renderer, bigFont, header, {177, 156, 217});
-    headerTxt.setCoords(editRect.x + 10, 10);
+    headerTxt.setCoords(editRect.x + 10, 10 - editScroll);
     headerTxt.render(renderer);
 
     SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
@@ -324,7 +354,7 @@ void Sidebar::editObject(Events events, Vector spawnLoc, vector<CelestialObject>
     degreeTxt.setCoords((degreeInput.getRect()->x + degreeInput.getRect()->w + 5), degreeInput.getRect()->y + degreeInput.getRect()->h / 2 - degreeTxt.getHeight() / 2);
     degreeTxt.render(renderer);
 
-    double d = objects[editingObject].velocity.getAngle();
+    double d = sim.objects[editingObject].velocity.getAngle();
     int sliderX = editRect.x + 20 + (sidebarWidth - 40) / 2;
     int sliderY = degreeInput.getRect()->y + degreeInput.getRect()->h + 30;
     circle.setCoords(sliderX + ((sidebarWidth - 40) / 360) * d - circle.getWidth() / 2, sliderY - circle.getHeight() / 2);
@@ -336,6 +366,30 @@ void Sidebar::editObject(Events events, Vector spawnLoc, vector<CelestialObject>
     SDL_RenderDrawLine(renderer, sliderX + ((sidebarWidth - 40) / 360) * 90, sliderY - 5, sliderX + ((sidebarWidth - 40) / 360) * 90, sliderY + 5);
     circle.render(renderer);
 
+    particlesTxt.setCoords(editRect.x + 15, circle.y + circle.getHeight() + 20);
+    particlesHelperTxt.setCoords(editRect.x + 15, particlesTxt.y + particlesTxt.getHeight() + 5);
+    particlesTxt.render(renderer);
+    particlesHelperTxt.render(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
+    checkBox.setCoords(editRect.x + 20, particlesHelperTxt.y + particlesHelperTxt.getHeight() + 20);
+    SDL_RenderDrawRect(renderer, checkBox.getRect());
+    if (checkBox.toggle)
+    {
+        check.setCoords(checkBox.getRect()->x + checkBox.getRect()->w / 2 - check.getWidth() / 2, checkBox.getRect()->y + checkBox.getRect()->h / 2 - check.getHeight() / 2);
+        check.render(renderer);
+    }
+    if (events.leftClick & SDL_PointInRect(&point, checkBox.getRect()) && SDL_PointInRect(&events.startClickPos, checkBox.getRect()))
+    {
+        checkBox.toggle = !checkBox.toggle;
+    }
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    double startY = checkBox.getRect()->y + checkBox.getRect()->h + 250;
+    scrollableHeight = startY - (headerTxt.getHeight() + 20);
+    editMaxScroll = startY - sidebarHeight - (headerTxt.getHeight() + 20);
+    editMaxScroll = (editMaxScroll < 0) ? 0 : editMaxScroll;
+
     if (sliderActivated)
     {
         d += events.mouseOffset.x;
@@ -343,22 +397,25 @@ void Sidebar::editObject(Events events, Vector spawnLoc, vector<CelestialObject>
         d = (d < -180) ? -180 : d;
         double radians = d * PI / 180;
         Vector direction = Vector(cos(radians), sin(radians));
-        objects[editingObject].velocity = direction.normalize() * objects[editingObject].velocity.magnitude();
-        degreeInput.setText(to_string((int)objects[editingObject].velocity.getAngle()), sidebarWidth);
+        sim.objects[editingObject].velocity = direction.normalize() * sim.objects[editingObject].velocity.magnitude();
+        degreeInput.setText(to_string((int)sim.objects[editingObject].velocity.getAngle()), sidebarWidth);
     }
 
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_Rect rect = {editRect.x, duplicateBtn.getRect()->y - 10, sidebarWidth, sidebarHeight - (duplicateBtn.getRect()->y - 10)};
+    SDL_RenderFillRect(renderer, &rect);
     SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
     deleteBtn.render();
     duplicateBtn.render();
 
-    SDL_Point point = events.getPoint();
     if (events.leftClick & SDL_PointInRect(&point, deleteBtn.getRect()) && SDL_PointInRect(&events.startClickPos, deleteBtn.getRect()))
     {
         if (editingObject != -1)
         {
-            objects[editingObject].editing = false;
+            sim.objects[editingObject].editing = false;
         }
-        objects.erase(objects.begin() + editingObject);
+        sim.objects[editingObject].object.freeAll();
+        sim.objects.erase(sim.objects.begin() + editingObject);
         editingObject = -1;
         selectedObject = -1;
         editState = false;
@@ -367,24 +424,32 @@ void Sidebar::editObject(Events events, Vector spawnLoc, vector<CelestialObject>
     }
     else if (events.leftClick & SDL_PointInRect(&point, duplicateBtn.getRect()) && SDL_PointInRect(&events.startClickPos, duplicateBtn.getRect()))
     {
-        if (editingObject != -1)
+        if (!nameInput.error && !massInput.error && !radiusInput.error && !velocityInput.error && !degreeInput.error)
         {
-            objects[editingObject].editing = false;
+            if (editingObject != -1)
+            {
+                sim.objects[editingObject].editing = false;
+            }
+            string name = "untitled-" + to_string(sim.objectsNum);
+            sim.objects.push_back(sim.objects[editingObject]);
+            sim.objects[sim.objects.size() - 1].setName(renderer, name);
+            sim.objects[sim.objects.size() - 1].position = spawnLoc;
+            editingObject = sim.objects.size() - 1;
+            sim.objects[editingObject].editing = true;
+            setInputs(sim, sim.objects[sim.objects.size() - 1], timeRate);
+            addActivated = false;
+            header = sim.objects[sim.objects.size() - 1].objType;
+            sim.objectsNum++;
         }
-        string name = "untitled-" + to_string(Utilities::numObjects);
-        objects.push_back(objects[editingObject]);
-        objects[objects.size() - 1].setName(renderer, name);
-        objects[objects.size() - 1].position = spawnLoc;
-        editingObject = objects.size() - 1;
-        objects[editingObject].editing = true;
-        setInputs(objects[objects.size() - 1], timeRate);
-        addActivated = false;
-        header = objects[objects.size() - 1].objType;
-        Utilities::numObjects++;
     }
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    float scrollableLength = sidebarHeight - ((float)sidebarHeight / scrollableHeight * sidebarHeight);
+    float move = editScroll / (float)editMaxScroll * scrollableLength;
+    SDL_RenderDrawLine(renderer, editRect.x + sidebarWidth - 10, 5 + move, editRect.x + sidebarWidth - 10, (sidebarHeight / scrollableHeight * sidebarHeight) + move - 5);
 }
 
-void Sidebar::distancesObject(Events events, vector<CelestialObject> &objects, double deltaTime)
+void Sidebar::distancesObject(Events events, Simulation &sim, double deltaTime)
 {
     SDL_Point point = events.getPoint();
 
@@ -400,12 +465,12 @@ void Sidebar::distancesObject(Events events, vector<CelestialObject> &objects, d
     int startY = (distancesTxt.getRect()->y + distanceScroll) + distancesTxt.getRect()->h + 10;
     distancesTxt.render(renderer);
 
-    for (CelestialObject obj : objects)
+    for (CelestialObject obj : sim.objects)
     {
-        if (obj.name != objects[editingObject].name)
+        if (obj.name != sim.objects[editingObject].name)
         {
             distanceNameTxt.loadFromRenderedText(renderer, smallFont, obj.name + " - (" + obj.objType + ")", {255, 255, 255});
-            distanceTxt.loadFromRenderedText(renderer, smallFont, to_string((int)Utilities::getRealDistance(obj.position.distance(objects[editingObject].position))) + " km", {255, 255, 255});
+            distanceTxt.loadFromRenderedText(renderer, smallFont, to_string((int)sim.getRealDistance(obj.position.distance(sim.objects[editingObject].position))) + " km", {255, 255, 255});
             distanceNameTxt.setCoords(editRect.x + 25, editRect.y + startY + 10 - distanceScroll);
             distanceTxt.setCoords(editRect.x + 25, distanceNameTxt.getRect()->y + distanceNameTxt.getRect()->h + 5);
             distanceNameTxt.render(renderer);
@@ -424,19 +489,19 @@ void Sidebar::distancesObject(Events events, vector<CelestialObject> &objects, d
     SDL_RenderDrawLine(renderer, width - 10, 5 + move, width - 10, 5 + (sidebarHeight / scrollableHeight * sidebarHeight) + move);
 }
 
-void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject> &objects, double timeRate, double timeStep)
+void Sidebar::runSidebar(Events events, Vector spawnLoc, Simulation &sim, Vector &panningOffset, double timeRate, double timeStep)
 {
     SDL_Point point = events.getPoint();
     bool click = events.rightClick;
 
     if (editingObject != -1 && click)
     {
-        SDL_Rect *rect = objects[editingObject].getRect();
+        SDL_Rect *rect = sim.objects[editingObject].getRect();
         if (SDL_PointInRect(&point, rect))
         {
             if (editingObject != -1)
             {
-                objects[editingObject].editing = false;
+                sim.objects[editingObject].editing = false;
             }
             editingObject = -1;
             addActivated = false;
@@ -445,11 +510,11 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
         }
     }
 
-    if ((click || events.holdingClick) && selectedObject == -1 && objects.size() > 0)
+    if ((click || events.holdingClick) && selectedObject == -1 && sim.objects.size() > 0)
     {
-        for (int i = 0; i < objects.size(); i++)
+        for (int i = 0; i < sim.objects.size(); i++)
         {
-            SDL_Rect *rect = objects[i].getRect();
+            SDL_Rect *rect = sim.objects[i].getRect();
             if (SDL_PointInRect(&point, rect))
             {
                 if (events.holdingClick)
@@ -460,15 +525,15 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
                 {
                     if (editingObject != -1)
                     {
-                        objects[editingObject].editing = false;
+                        sim.objects[editingObject].editing = false;
                     }
                     editingObject = i;
-                    objects[editingObject].editing = true;
-                    setInputs(objects[i], timeRate);
+                    sim.objects[editingObject].editing = true;
+                    setInputs(sim, sim.objects[i], timeRate);
                     addActivated = false;
                     editActivated = true;
                     editState = true;
-                    header = objects[i].objType;
+                    header = sim.objects[i].objType;
                 }
             }
         }
@@ -476,19 +541,19 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
 
     if (events.checkSpecialHoldKey(UP))
     {
-        objects[editingObject].position.y -= 0.01 * timeStep;
+        sim.objects[editingObject].position.y -= 0.01 * timeStep;
     }
     else if (events.checkSpecialHoldKey(DOWN))
     {
-        objects[editingObject].position.y += 0.01 * timeStep;
+        sim.objects[editingObject].position.y += 0.01 * timeStep;
     }
     if (events.checkSpecialHoldKey(LEFT))
     {
-        objects[editingObject].position.x -= 0.01 * timeStep;
+        sim.objects[editingObject].position.x -= 0.01 * timeStep;
     }
     else if (events.checkSpecialHoldKey(RIGHT))
     {
-        objects[editingObject].position.x += 0.01 * timeStep;
+        sim.objects[editingObject].position.x += 0.01 * timeStep;
     }
 
     if (!events.holdingClick)
@@ -498,9 +563,9 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
     }
     else if (events.holdingClick)
     {
-        if (objects.size() > 0)
+        if (sim.objects.size() > 0)
         {
-            objects[selectedObject].position += events.mouseOffset;
+            sim.objects[selectedObject].position += events.mouseOffset;
         }
         if (SDL_PointInRect(&point, circle.getRect()))
         {
@@ -508,11 +573,20 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
         }
     }
 
-    if (addState)
+    if (addState || viewState)
     {
         if (events.checkSpecialKey(SHIFT))
         {
-            viewState = not viewState;
+            viewState = !viewState;
+        }
+
+        if (SDL_PointInRect(&point, inArrow.getRect()) && SDL_PointInRect(&events.startClickPos, inArrow.getRect()) && events.leftClick)
+        {
+            addActivated = true;
+        }
+        else if (SDL_PointInRect(&point, outArrow.getRect()) && SDL_PointInRect(&events.startClickPos, outArrow.getRect()) && events.leftClick)
+        {
+            addActivated = false;
         }
 
         if (addActivated)
@@ -540,22 +614,13 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
         SDL_RenderFillRect(renderer, &addRect);
         SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
 
-        if (SDL_PointInRect(&point, inArrow.getRect()) && SDL_PointInRect(&events.startClickPos, inArrow.getRect()) && events.leftClick)
-        {
-            addActivated = true;
-        }
-        if (SDL_PointInRect(&point, outArrow.getRect()) && SDL_PointInRect(&events.startClickPos, outArrow.getRect()) && events.leftClick)
-        {
-            addActivated = false;
-        }
-
         if (viewState)
         {
-            viewObjects(events, objects, timeStep, timeRate);
+            viewObjects(events, sim, panningOffset, timeStep, timeRate);
         }
         else
         {
-            addObject(events, spawnLoc, objects, timeRate, timeStep);
+            addObject(events, spawnLoc, sim, timeRate, timeStep);
         }
 
         if (!addActivated)
@@ -605,30 +670,51 @@ void Sidebar::runSidebar(Events events, Vector spawnLoc, vector<CelestialObject>
 
         if (distanceState)
         {
-            distancesObject(events, objects, timeStep);
+            distancesObject(events, sim, timeStep);
         }
         else
         {
-            editObject(events, spawnLoc, objects, timeRate);
-            updateObject(events, objects, timeRate);
+            editObject(events, spawnLoc, sim, timeRate, timeStep);
+            updateObject(events, sim, timeRate);
         }
         SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
         SDL_RenderDrawRect(renderer, &editRect);
     }
 }
 
-bool Sidebar::checkHover(SDL_Point point, vector<CelestialObject> objects)
+bool Sidebar::checkHover(SDL_Point point, Simulation sim)
 {
-    for (int i = 0; i < objects.size(); i++)
+    for (int i = 0; i < sim.objects.size(); i++)
     {
-        SDL_Rect *rect = objects[i].getRect();
+        SDL_Rect *rect = sim.objects[i].getRect();
         if (SDL_PointInRect(&point, rect))
         {
             return true;
         }
     }
 
-    if (addState)
+    if (viewState)
+    {
+        int startY = (sidebarTxt.getRect()->y + viewScroll) + sidebarTxt.getRect()->h + 10;
+        for (int i = 0; i < sim.objects.size(); i++)
+        {
+            SDL_Rect rect = {20 - addTransitionOffset, startY - viewScroll, sidebarWidth - 40, 65};
+            startY += 70;
+            if (SDL_PointInRect(&point, &rect))
+            {
+                return true;
+            }
+        }
+        if (!addActivated && SDL_PointInRect(&point, inArrow.getRect()))
+        {
+            return true;
+        }
+        else if (addActivated && SDL_PointInRect(&point, outArrow.getRect()))
+        {
+            return true;
+        }
+    }
+    else if (addState)
     {
         for (Frame frame : frames)
         {
@@ -664,7 +750,7 @@ bool Sidebar::checkHover(SDL_Point point, vector<CelestialObject> objects)
         {
             return true;
         }
-        if (SDL_PointInRect(&point, deleteBtn.getRect()) || SDL_PointInRect(&point, duplicateBtn.getRect()) || SDL_PointInRect(&point, circle.getRect()))
+        if (SDL_PointInRect(&point, checkBox.getRect()) || SDL_PointInRect(&point, deleteBtn.getRect()) || SDL_PointInRect(&point, duplicateBtn.getRect()) || SDL_PointInRect(&point, circle.getRect()))
         {
             return true;
         }
@@ -673,7 +759,7 @@ bool Sidebar::checkHover(SDL_Point point, vector<CelestialObject> objects)
     return false;
 }
 
-void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, double timeRate)
+void Sidebar::updateObject(Events events, Simulation &sim, double timeRate)
 {
     if (events.input.length() > 0 || events.checkSpecialKey(BACKSPACE) || events.checkSpecialKey(SPACE) || sliderActivated)
     {
@@ -686,11 +772,11 @@ void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, doub
         {
             nameInput.error = false;
         }
-        for (int i = 0; i < objects.size(); i++)
+        for (int i = 0; i < sim.objects.size(); i++)
         {
             if (i != editingObject)
             {
-                if (objects[i].name == nameInput.getText())
+                if (sim.objects[i].name == nameInput.getText())
                 {
                     nameInput.error = true;
                     nameInput.setErrorText("Name has been used already.");
@@ -704,22 +790,23 @@ void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, doub
         }
         if (!nameInput.error)
         {
-            objects[editingObject].setName(renderer, nameInput.getText());
+            sim.objects[editingObject].setName(renderer, nameInput.getText());
         }
 
-        pair<string, string> radiusPair = parseInput(radiusInput.getText());
-        pair<string, string> massPair = parseInput(massInput.getText());
-        pair<string, string> velocityPair = parseInput(velocityInput.getText());
+        pair<string, string> radiusPair = Utilities::parseInput(radiusInput.getText());
+        pair<string, string> massPair = Utilities::parseInput(massInput.getText());
+        pair<string, string> velocityPair = Utilities::parseInput(velocityInput.getText());
         string degree = degreeInput.getText();
 
         if (Utilities::validateRadius(radiusPair.first) && Utilities::validateRadius(radiusPair.second))
         {
             radiusInput.error = false;
-            long double r = Utilities::scaleDistance(stold(radiusPair.first) * pow(10, stold(radiusPair.second)));
-            if (r != objects[editingObject].radius)
+            long double r = sim.scaleDistance(stold(radiusPair.first) * pow(10, stold(radiusPair.second)));
+            if (r != sim.objects[editingObject].radius)
             {
-                (r != 0) ? objects[editingObject].updateRadius = r : radiusInput.error = true;
-                objects[editingObject].updateSizeInstant(renderer);
+                (r > 0) ? sim.objects[editingObject].updateRadius = r : radiusInput.error = true;
+                (r > 0) ? sim.objects[editingObject].radius = r : radiusInput.error = true;
+                sim.objects[editingObject].updateSizeInstant(renderer);
             }
         }
         else
@@ -731,10 +818,10 @@ void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, doub
         if (Utilities::validateMass(massPair.first) && Utilities::validateMass(massPair.second))
         {
             massInput.error = false;
-            long double m = Utilities::scaleMass(stold(massPair.first) * pow(10, stold(massPair.second)));
-            if (m != objects[editingObject].mass)
+            long double m = sim.scaleMass(stold(massPair.first) * pow(10, stold(massPair.second)));
+            if (m != sim.objects[editingObject].mass)
             {
-                (m != 0) ? objects[editingObject].mass = m : massInput.error = true;
+                (m > 0) ? sim.objects[editingObject].mass = m : massInput.error = true;
             }
         }
         else
@@ -748,9 +835,9 @@ void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, doub
             degreeInput.error = false;
             double radians = stod(degree) * PI / 180;
             Vector direction = Vector(cos(radians), sin(radians));
-            if (direction != objects[editingObject].velocity.normalize())
+            if (direction != sim.objects[editingObject].velocity.normalize())
             {
-                objects[editingObject].velocity = direction.normalize() * objects[editingObject].velocity.magnitude();
+                sim.objects[editingObject].velocity = direction.normalize() * sim.objects[editingObject].velocity.magnitude();
             }
         }
         else
@@ -763,15 +850,15 @@ void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, doub
         {
             velocityInput.error = false;
             long double v = stold(velocityPair.first) * pow(10, stold(velocityPair.second));
-            if (v != objects[editingObject].velocity.magnitude() / Utilities::getTimeRates()[timeRate].second)
+            if (v != sim.objects[editingObject].velocity.magnitude() / Utilities::getTimeRates()[timeRate].second)
             {
-                if (objects[editingObject].velocity.magnitude() != 0)
+                if (sim.objects[editingObject].velocity.magnitude() != 0)
                 {
-                    objects[editingObject].velocity = objects[editingObject].velocity.normalize() * Utilities::scaleDistance(v * Utilities::getTimeRates()[timeRate].second);
+                    sim.objects[editingObject].velocity = sim.objects[editingObject].velocity.normalize() * sim.scaleDistance(v * Utilities::getTimeRates()[timeRate].second);
                 }
                 else
                 {
-                    objects[editingObject].velocity = Vector(0, Utilities::scaleDistance(v * Utilities::getTimeRates()[timeRate].second));
+                    sim.objects[editingObject].velocity = Vector(0, sim.scaleDistance(v * Utilities::getTimeRates()[timeRate].second));
                 }
             }
         }
@@ -781,14 +868,16 @@ void Sidebar::updateObject(Events events, vector<CelestialObject> &objects, doub
             velocityInput.setErrorText("Invalid Velocity Input.");
         }
     }
+
+    sim.objects[editingObject].toggleParticles = checkBox.toggle;
 }
 
-void Sidebar::setInputs(CelestialObject &object, double timeRate)
+void Sidebar::setInputs(Simulation sim, CelestialObject &object, double timeRate)
 {
     std::ostringstream ssRadius, ssMass, ssVelocity, ssDegree;
-    ssRadius << Utilities::getRealDistance(object.radius);
-    ssMass << Utilities::getRealMass(object.mass);
-    ssVelocity << Utilities::getRealDistance(object.velocity.magnitude() / Utilities::getTimeRates()[timeRate].second);
+    ssRadius << sim.getRealDistance(object.radius);
+    ssMass << sim.getRealMass(object.mass);
+    ssVelocity << sim.getRealDistance(object.velocity.magnitude() / Utilities::getTimeRates()[timeRate].second);
     ssDegree << object.velocity.getAngle();
 
     clearInputs();
@@ -801,31 +890,7 @@ void Sidebar::setInputs(CelestialObject &object, double timeRate)
     massInput.setText(massExpForm, sidebarWidth);
     velocityInput.setText(velocityExpForm, sidebarWidth);
     degreeInput.setText(degreeForm, sidebarWidth);
-}
-
-pair<string, string> Sidebar::parseInput(string input)
-{
-    string currentState = "Base";
-    string base = "";
-    string exponent = "";
-
-    for (int x = 0; x < input.length(); x++)
-    {
-        if (isdigit(input[x]) || input[x] == '.' || input[x] == '-' || input[x] == '+')
-        {
-            (currentState == "Base") ? base += input[x] : exponent += input[x];
-        }
-        else if (input[x] == 'e' || input[x] == 'E')
-        {
-            currentState = "Exponent";
-        }
-    }
-    if (exponent.length() == 0)
-    {
-        exponent = "0";
-    }
-
-    return make_pair(base.c_str(), exponent.c_str());
+    checkBox.setToggle(object.toggleParticles);
 }
 
 void Sidebar::clearInputs()
@@ -845,6 +910,8 @@ void Sidebar::clearInputs()
 void Sidebar::reset()
 {
     scroll = 0;
+    editScroll = 0;
+    editMaxScroll = 0;
     distanceScroll = 0;
     editingObject = -1;
     selectedObject = -1;
@@ -852,6 +919,7 @@ void Sidebar::reset()
     editActivated = false;
     sliderActivated = false;
     addState = true;
+    viewState = false;
     editState = false;
     addTransitionOffset = width / 3;
     editTransitionOffset = -(width / 3);

@@ -15,7 +15,7 @@ class Transition
 {
 private:
     int width, height;
-    int holdSpeed, pixelatedSpeed;
+    double holdSpeed, pixelatedSpeed;
     SDL_Renderer *renderer;
     Timer pixelateTimer, holdTimer;
     vector<Vector> locations;
@@ -24,7 +24,7 @@ private:
 public:
     string transitionState;
     Transition();
-    Transition(SDL_Renderer *renderer, int width, int height, int holdSpeed);
+    Transition(SDL_Renderer *renderer, int width, int height, double holdSpeed);
     void getPossibleLocations();
     string runTransition();
 };
