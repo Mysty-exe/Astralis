@@ -10,6 +10,11 @@ using namespace std;
 
 enum Keys
 {
+    W,
+    S,
+    A,
+    D,
+    M,
     CTRL,
     TAB,
     UP,

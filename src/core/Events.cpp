@@ -40,7 +40,7 @@ void Events::getEvents(SDL_Event event)
         {
             if (event.button.button == SDL_BUTTON_LEFT)
             {
-                startClickPos = {mousePos.x, mousePos.y};
+                startClickPos = {(int)mousePos.x, (int)mousePos.y};
                 holdingClick = true;
             }
         }
@@ -62,6 +62,26 @@ void Events::getEvents(SDL_Event event)
         }
         else if (event.type == SDL_KEYDOWN)
         {
+            if (event.key.keysym.sym == SDLK_w)
+            {
+                specialKeys.push_back(W);
+            }
+            if (event.key.keysym.sym == SDLK_s)
+            {
+                specialKeys.push_back(S);
+            }
+            if (event.key.keysym.sym == SDLK_a)
+            {
+                specialKeys.push_back(A);
+            }
+            if (event.key.keysym.sym == SDLK_d)
+            {
+                specialKeys.push_back(D);
+            }
+            if (event.key.keysym.sym == SDLK_m)
+            {
+                specialKeys.push_back(M);
+            }
             if (event.key.keysym.sym == SDLK_TAB)
             {
                 specialKeys.push_back(TAB);
@@ -109,6 +129,26 @@ void Events::getEvents(SDL_Event event)
         }
     }
 
+    if (keys[SDL_SCANCODE_W])
+    {
+        specialHoldKeys.push_back(W);
+    }
+    if (keys[SDL_SCANCODE_S])
+    {
+        specialHoldKeys.push_back(S);
+    }
+    if (keys[SDL_SCANCODE_A])
+    {
+        specialHoldKeys.push_back(A);
+    }
+    if (keys[SDL_SCANCODE_D])
+    {
+        specialHoldKeys.push_back(D);
+    }
+    if (keys[SDL_SCANCODE_M])
+    {
+        specialHoldKeys.push_back(M);
+    }
     if (keys[SDL_SCANCODE_TAB])
     {
         specialHoldKeys.push_back(TAB);
@@ -175,7 +215,7 @@ bool Events::checkSpecialHoldKey(Keys key)
 
 SDL_Point Events::getPoint()
 {
-    SDL_Point point = {mousePos.x, mousePos.y};
+    SDL_Point point = {(int)mousePos.x, (int)mousePos.y};
     return point;
 }
 

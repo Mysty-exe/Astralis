@@ -53,8 +53,8 @@ void Image::free()
 
 void Image::render(SDL_Renderer *renderer, float xscroll, float yscroll, float angle)
 {
-    SDL_Point point = {0, height / 2};
-    SDL_Rect renderQuad = {x - xscroll, y - yscroll, width, height};
+    SDL_Point point = {0, (int)(height / 2)};
+    SDL_Rect renderQuad = {(int)(x - xscroll), (int)(y - yscroll), (int)width, (int)height};
     SDL_RenderCopyEx(renderer, texture, NULL, &renderQuad, angle, &point, SDL_FLIP_NONE);
 }
 

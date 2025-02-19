@@ -4,12 +4,13 @@ Transition::Transition()
 {
 }
 
-Transition::Transition(SDL_Renderer *renderer, int width, int height, int holdSpeed)
+Transition::Transition(SDL_Renderer *renderer, int width, int height, double holdSpeed)
 {
     this->renderer = renderer;
     this->width = width;
     this->height = height;
     this->holdSpeed = holdSpeed;
+    transitionState = "Done";
     getPossibleLocations();
 }
 
@@ -90,7 +91,7 @@ string Transition::runTransition()
 
     for (Vector v : drawLocations)
     {
-        SDL_Rect rect = {v.x, v.y, 64, 64};
+        SDL_Rect rect = {(int)v.x, (int)v.y, 64, 64};
         SDL_SetRenderDrawColor(renderer, 46, 21, 68, 255);
         SDL_RenderFillRect(renderer, &rect);
     }

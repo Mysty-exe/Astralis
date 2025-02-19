@@ -4,549 +4,403 @@ Simulation::Simulation()
 {
 }
 
-Simulation::Simulation(SDL_Renderer *renderer, int width, int height)
+Simulation::Simulation(SDL_Renderer *renderer, string name, double distRatio, double simRadius)
 {
     this->renderer = renderer;
-    this->width = width;
-    this->height = height;
-    gameWidth = width;
-    gameHeight = height;
+    this->name = name;
+    this->distRatio = distRatio;
+    this->simRadius = simRadius;
+    timeRate = 0;
 
-    bigFont = TTF_OpenFont("assets/Fonts/font.otf", 32);
-    smallFont = TTF_OpenFont("assets/Fonts/quicksand.otf", 14);
+    state = SIMULATION;
+    objectsNum = 1;
 
-    simState = MAIN;
-    pause = false;
-    editing = false;
-    view = false;
-    error = false;
-    zoomFactor = 1;
-    distance = false;
+    font = TTF_OpenFont("assets/Fonts/font.otf", 24);
+    smallFont = TTF_OpenFont("assets/Fonts/font.otf", 16);
 
-    dragState = "";
-    pointer = false;
+    irlSecs = 0;
+    simSecs = 0;
 
-    sidebar = Sidebar(renderer, width, height);
-    overlay = Overlay(renderer, width, height);
-    transition = Transition(renderer, width, height, 1);
-    transition.transitionState = "In";
+    textColor = {255, 255, 255};
+    focusedTxt.loadFromRenderedText(renderer, smallFont, "Focused", textColor);
+    modeTxt.loadFromRenderedText(renderer, smallFont, "Paused", textColor);
+    dateTxt.loadFromRenderedText(renderer, smallFont, "Date - Unknown", textColor);
+    rateTxt.loadFromRenderedText(renderer, smallFont, "1 sec/sec", textColor);
 
-    pointerCursor.loadFromFile(renderer, "assets/cursors/pointer.png", 2);
-    handCursor.loadFromFile(renderer, "assets/cursors/hand.png", 2);
-
-    background = Animation(renderer, "assets/Backgrounds/Game Background", 1, 1);
-    editingRect = {0, 0, width, height};
-
-    returnTxt.loadFromFile(renderer, "assets/Escape/mainMenuTxt.png", 2);
-    returnTxt.setCoords(width / 2 - returnTxt.getWidth() / 2, height / 8);
-
-    yesTxt.loadFromFile(renderer, "assets/Escape/yesTxt.png", 1.5);
-    yesTxt.setCoords(width / 2 - yesTxt.getWidth() / 2, returnTxt.y + height / 3);
-    yesHoverTxt.loadFromFile(renderer, "assets/Escape/yesHoverTxt.png", 1.5);
-    yesHoverTxt.setCoords(width / 2 - yesHoverTxt.getWidth() / 2, returnTxt.y + height / 3);
-
-    noTxt.loadFromFile(renderer, "assets/Escape/noTxt.png", 1.5);
-    noTxt.setCoords(width / 2 - noTxt.getWidth() / 2, yesTxt.y + height / 6);
-    noHoverTxt.loadFromFile(renderer, "assets/Escape/noHoverTxt.png", 1.5);
-    noHoverTxt.setCoords(width / 2 - noHoverTxt.getWidth() / 2, yesTxt.y + height / 6);
-
-    distancesTxt.loadFromRenderedText(renderer, bigFont, "Distances", {177, 156, 217});
-    distanceNameTxt.loadFromRenderedText(renderer, smallFont, "Name", {177, 156, 217});
-    distanceTxt.loadFromRenderedText(renderer, smallFont, "100 km", {177, 156, 217});
-
-    viewOffset = 0;
-    viewStart = 0;
-    panningOffset = Vector(0, 0);
-    distanceScroll = 0;
-    distanceMaxScroll = 0;
-
-    CelestialObject starA = CelestialObject(renderer, width, height, "Star", "Star", "assets/Objects/Stars/Red Star", 2 * pow(10, 30), 100000, width / 2, height / 2, Vector(0, 0));
-    CelestialObject starB = CelestialObject(renderer, width, height, "Comet", "Comet", "assets/Objects/Comet", 1.63 * pow(10, 24), 8000, width / 2 + 600, height / 2, Vector(0, 45));
-    objects = {starA, starB};
-
-    timeStep = 0;
-    focusedObject = -1;
-    currentTimeRate = 0;
+    radiusTxt.loadFromRenderedText(renderer, font, "Radius", {177, 156, 217});
+    massTxt.loadFromRenderedText(renderer, font, "Mass", {177, 156, 217});
+    velocityTxt.loadFromRenderedText(renderer, font, "Velocity", {177, 156, 217});
+    kineticTxt.loadFromRenderedText(renderer, font, "Kinetic Energy", {177, 156, 217});
+    potentialTxt.loadFromRenderedText(renderer, font, "Potential Energy", {177, 156, 217});
+    trajectory.loadFromFile(renderer, "assets/circle.png", 0.25);
 }
 
-void Simulation::resetSimulation()
+long double Simulation::scaleDistance(long double dist)
 {
-    simState = MAIN;
-    zoomFactor = 1;
-    transition.transitionState = "In";
-    transition.getPossibleLocations();
-    panningOffset = Vector(0, 0);
-    currentTimeRate = 0;
+    return dist / distRatio;
 }
 
-void Simulation::drawCursor(Events events)
+long double Simulation::scaleMass(long double mass)
 {
-    if (pointer)
-    {
-        handCursor.setCoords(events.mousePos.x - 4, events.mousePos.y);
-        handCursor.render(renderer);
-    }
-    else
-    {
-        pointerCursor.setCoords(events.mousePos.x, events.mousePos.y);
-        pointerCursor.render(renderer);
-    }
+    return mass / pow(10, 24);
 }
 
-void Simulation::drawBackground()
+long double Simulation::getRealDistance(long double dist)
 {
-    int startX = 0;
-    if (-panningOffset.x < 0)
+    return dist * distRatio;
+}
+
+long double Simulation::getRealMass(long double mass)
+{
+    return mass * pow(10, 24);
+}
+
+void Simulation::scaleObjects(string n)
+{
+    for (CelestialObject &obj : objects)
     {
-        while (true)
+        if (obj.name == n)
         {
-            startX -= background.getWidth();
-            if (startX < -panningOffset.x)
+            obj.mass = scaleMass(obj.mass);
+            obj.radius = scaleDistance(obj.radius);
+            obj.updateRadius = scaleDistance(obj.updateRadius);
+            obj.velocity.x = scaleDistance(obj.velocity.x);
+            obj.velocity.y = scaleDistance(obj.velocity.y);
+            obj.updateSizeInstant(renderer);
+        }
+    }
+}
+
+void Simulation::applyForces(double timeStep)
+{
+    int rate = Utilities::getTimeRates()[timeRate].second;
+    for (int i = 0; i < Utilities::getSubdividor()[timeRate]; i++)
+    {
+        for (CelestialObject &obj : objects)
+        {
+            for (CelestialObject &otherObj : objects)
             {
-                break;
+                if (obj.name != otherObj.name)
+                {
+                    Vector forceVector = otherObj.position - obj.position;
+                    forceVector.normalize();
+
+                    double force = Utilities::getGravityForce(getRealMass(obj.mass), getRealMass(otherObj.mass), getRealDistance(otherObj.position.distance(obj.position)), rate);
+                    forceVector *= (force / getRealMass(obj.mass));
+                    forceVector = forceVector.normalize() * scaleDistance(forceVector.magnitude());
+                    obj.velocity += forceVector * timeStep;
+                }
             }
         }
-    }
-
-    int startY = 0;
-    if (-panningOffset.y < 0)
-    {
-        while (true)
-        {
-            startY -= background.getHeight();
-            if (startY < -panningOffset.y)
-            {
-                break;
-            }
-        }
-    }
-
-    for (int i = startX; i < (width)-panningOffset.x; i += background.getWidth())
-    {
-        for (int ii = startY; ii < (height)-panningOffset.y; ii += background.getHeight())
-        {
-            background.render(i + panningOffset.x, ii + panningOffset.y);
-        }
+        applyVelocities(timeStep);
     }
 }
 
-void Simulation::info(Events events)
+void Simulation::applyVelocities(double timeStep)
 {
-    SDL_Rect rect = {width - (width / 4), 0, width / 4, height * 2 / 3};
-    overlay.displayObjectInfo(objects[focusedObject], width - (width / 4), 0, currentTimeRate);
-}
-
-void Simulation::distances(Events events)
-{
-    SDL_Point point = events.getPoint();
-    SDL_Rect rect = {width - (width / 4), 0, width / 4, height * 2 / 3};
-
-    if (SDL_PointInRect(&point, &rect))
-    {
-        distanceScroll -= events.mouseWheel.y * 1200 * timeStep;
-        distanceScroll = (distanceScroll < 0) ? 0 : distanceScroll;
-        distanceScroll = (distanceScroll > distanceMaxScroll) ? distanceMaxScroll : distanceScroll;
-    }
-
-    SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
-    distancesTxt.setCoords(rect.x + 10, rect.y + 10 - distanceScroll);
-    int startY = (distancesTxt.getRect()->y + distanceScroll) + distancesTxt.getRect()->h + 10;
-    distancesTxt.render(renderer);
-
-    for (CelestialObject obj : objects)
-    {
-        if (obj.name != objects[focusedObject].name)
-        {
-            distanceNameTxt.loadFromRenderedText(renderer, smallFont, obj.name + " - (" + obj.objType + ")", {255, 255, 255});
-            distanceTxt.loadFromRenderedText(renderer, smallFont, to_string((int)Utilities::getRealDistance(obj.position.distance(objects[focusedObject].position))) + " km", {255, 255, 255});
-            distanceNameTxt.setCoords(rect.x + 25, rect.y + startY + 10 - distanceScroll);
-            distanceTxt.setCoords(rect.x + 25, distanceNameTxt.getRect()->y + distanceNameTxt.getRect()->h + 5);
-            distanceNameTxt.render(renderer);
-            distanceTxt.render(renderer);
-            SDL_RenderDrawLine(renderer, rect.x + 20, rect.y + startY + 65 - distanceScroll, rect.x + rect.w - 20, rect.y + startY + 65 - distanceScroll);
-            startY += 65;
-        }
-    }
-    distanceMaxScroll = startY - rect.h - 65;
-    distanceMaxScroll = (distanceMaxScroll < 0) ? 0 : distanceMaxScroll;
-    float scrollableHeight = startY - 65 - 10;
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    float scrollableLength = rect.h - ((float)rect.h / scrollableHeight * rect.h);
-    float move = distanceScroll / (float)distanceMaxScroll * scrollableLength;
-    SDL_RenderDrawLine(renderer, width - 10, 5 + move, width - 10, 5 + (rect.h / scrollableHeight * rect.h) + move);
-}
-
-void Simulation::viewState(Events events)
-{
-    SDL_Point point = events.getPoint();
-
-    bool pan = true;
-    float startY = height;
-    startY -= viewOffset;
-    viewOffset += 1000 * timeStep;
-    if (startY < height - (width / 4))
-    {
-        startY = height - (width / 4);
-    }
-
-    SDL_Rect rect = {0 - viewStart, startY, width / 4, width / 4};
-
-    if (events.checkSpecialKey(LEFT))
-    {
-        if (viewStart > 0)
-        {
-            viewStart -= (width / 4);
-        }
-    }
-    else if (events.checkSpecialKey(RIGHT))
-    {
-        float num = viewStart / (width / 4) + 1;
-        if (objects.size() - num >= 4)
-        {
-            viewStart += (width / 4);
-        }
-    }
-
+    double third = 1 / 3.0;
+    vector<int> indexes;
     for (int i = 0; i < objects.size(); i++)
     {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 50);
-        if (SDL_PointInRect(&point, &rect))
+        objects[i].position += objects[i].velocity * timeStep;
+        if (getRealDistance(objects[i].position.x) > simRadius || getRealDistance(objects[i].position.y) > simRadius)
         {
-            SDL_SetRenderDrawColor(renderer, 203, 195, 227, 50);
-            pointer = true;
-            pan = false;
-            if (events.leftClick && SDL_PointInRect(&events.startClickPos, &rect))
+            if (std::find(indexes.begin(), indexes.end(), i) == indexes.end())
             {
-                focusedObject = i;
-                view = false;
+                indexes.push_back(i);
+                continue;
             }
         }
 
-        objects[i].nameTxt.setCoords(rect.x + rect.w / 2 - objects[i].nameTxt.getWidth() / 2, rect.y + rect.h - objects[i].nameTxt.getHeight() - 10);
+        for (int ii = 0; ii < objects.size(); ii++)
+        {
+            if (std::find(indexes.begin(), indexes.end(), ii) != indexes.end())
+            {
+                continue;
+            }
+            if (objects[i].name != objects[ii].name && (objects[i].position.distance(objects[ii].position) <= objects[i].radius + objects[ii].radius))
+            {
+                if (objects[i].mass >= objects[ii].mass || objects[i].objType == "Star" && objects[ii].objType != "Star")
+                {
+                    objects[i].mass += objects[ii].mass;
+                    objects[i].velocity = (objects[i].velocity * objects[i].mass + objects[ii].velocity * objects[ii].mass) / (objects[i].mass + objects[ii].mass);
+                    objects[i].updateRadius = pow(pow(objects[i].radius, 3) + pow(objects[ii].radius, 3), third);
 
-        SDL_RenderFillRect(renderer, &rect);
-        objects[i].nameTxt.render(renderer);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);
-        SDL_RenderDrawRect(renderer, &rect);
-        objects[i].viewObject.render(rect.x + rect.w / 2 - objects[i].viewObject.getWidth() / 2, rect.y + 30);
-        rect.x += (width / 4);
+                    objects[i].particlePos = (objects[ii].position - objects[i].position).normalize();
+                    objects[i].particleExplosion = sqrt(getRealDistance(objects[ii].radius));
+                    objects[i].particleDurationTimer.start();
+                    objects[ii].object.freeAll();
+                    if (std::find(indexes.begin(), indexes.end(), ii) == indexes.end())
+                    {
+                        indexes.push_back(ii);
+                    }
+                }
+                else if (objects[i].mass < objects[ii].mass || objects[ii].objType == "Star" && objects[i].objType != "Star")
+                {
+                    objects[ii].mass += objects[i].mass;
+                    objects[ii].velocity = (objects[ii].velocity * objects[ii].mass + objects[i].velocity * objects[i].mass) / (objects[ii].mass + objects[i].mass);
+                    objects[ii].updateRadius = pow(pow(objects[ii].radius, 3) + pow(objects[i].radius, 3), third);
+
+                    objects[ii].particlePos = (objects[i].position - objects[ii].position).normalize();
+                    objects[ii].particleExplosion = sqrt(getRealDistance(objects[i].radius));
+                    objects[ii].particleDurationTimer.start();
+                    objects[i].object.freeAll();
+                    if (std::find(indexes.begin(), indexes.end(), i) == indexes.end())
+                    {
+                        indexes.push_back(i);
+                    }
+                }
+            }
+        }
+        objects[i].updateSizeGradually(objects[i].renderer, timeStep);
     }
 
-    if (events.holdingClick && pan)
+    for (int i : indexes)
     {
-        pointer = true;
-        panningOffset += events.mouseOffset;
+        objects.erase(objects.begin() + i);
     }
 }
 
-string Simulation::returnScreen(Events events, string state)
+void Simulation::calculateEnergy()
 {
-    SDL_Point point = events.getPoint();
-
-    SDL_Rect rect = {0, 0, width, height};
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 100);
-    SDL_RenderFillRect(renderer, &rect);
-
-    returnTxt.render(renderer);
-
-    if (SDL_PointInRect(&point, yesTxt.getRect()))
+    for (CelestialObject &obj1 : objects)
     {
-        pointer = true;
-        yesHoverTxt.render(renderer);
-        if (events.leftClick && SDL_PointInRect(&events.startClickPos, yesTxt.getRect()))
-        {
-            resetSimulation();
-            state = "Menu";
-        }
-    }
-    else
-    {
-        yesTxt.render(renderer);
-    }
-
-    if (SDL_PointInRect(&point, noTxt.getRect()))
-    {
-        pointer = true;
-        noHoverTxt.render(renderer);
-        if (events.leftClick && SDL_PointInRect(&events.startClickPos, noTxt.getRect()))
-        {
-            simState = MAIN;
-        }
-    }
-    else
-    {
-        noTxt.render(renderer);
-    }
-
-    return state;
-}
-
-void Simulation::mainScreen(Events events)
-{
-    SDL_Point point = events.getPoint();
-
-    timeStep = stepTimer.getTicks() / 1000.0f;
-    timeStep = (timeStep <= 0) ? 0.001 : timeStep;
-    if (!pause && !editing && simState != RETURN)
-    {
-        if (dateTimer.isPaused())
-        {
-            dateTimer.unpause();
-        }
-        CelestialObject::applyForces(objects, timeStep, currentTimeRate);
-
-        if (events.checkSpecialKey(ENTER) && objects.size() != 0 && !view)
-        {
-            if (focusedObject < objects.size() - 1)
-            {
-                focusedObject += 1;
-            }
-            else
-            {
-                focusedObject = 0;
-            }
-        }
-        if (events.checkSpecialKey(BACKSPACE))
-        {
-            focusedObject = -1;
-        }
-        if (events.checkSpecialKey(TAB))
-        {
-            if (objects.size() > 0)
-            {
-                viewStart = 0;
-                viewOffset = 0;
-                view = !view;
-            }
-        }
-    }
-    else
-    {
-        dateTimer.pause();
-    }
-    stepTimer.start();
-
-    SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
-    CelestialObject::display(renderer, objects, panningOffset, currentTimeRate, timeStep);
-
-    if (!pause && !editing && simState != RETURN)
-    {
-        if (view)
-        {
-            viewState(events);
-        }
-    }
-
-    if (!view)
-    {
-        overlay.displaySimulationDate(currentTimeRate, dateTimer.getTicks());
-        overlay.displayTimeRate(currentTimeRate);
-    }
-
-    if (editing)
-    {
-        if (error)
-        {
-            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 50);
-        }
-        else
-        {
-            SDL_SetRenderDrawColor(renderer, 203, 195, 227, 50);
-        }
-        SDL_RenderFillRect(renderer, &editingRect);
-    }
-
-    overlay.displaySimulationStatus(pause, editing);
-
-    if ((simState == MAIN && events.holdingClick) && focusedObject == -1 && !view && !sidebar.sliderActivated)
-    {
-        pointer = true;
-        panningOffset += events.mouseOffset;
-    }
-    else if (focusedObject != -1 && !sidebar.sliderActivated)
-    {
-        SDL_Rect rect = {width - (width / 4), 0, width / 4, height * 2 / 3};
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 50);
-        SDL_RenderFillRect(renderer, &rect);
-        SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
-        SDL_RenderDrawRect(renderer, &rect);
-
-        if (!distance)
-        {
-            info(events);
-        }
-        else
-        {
-            distances(events);
-        }
-
-        if (!pause)
-        {
-            overlay.displayFocusedObject(objects[focusedObject].name, objects[focusedObject].objType);
-        }
-
-        panningOffset = Vector(-objects[focusedObject].position.x, -objects[focusedObject].position.y);
-        panningOffset.x += width / 2;
-        panningOffset.y += height / 2;
-    }
-}
-
-void Simulation::editScreen(Events events)
-{
-    SDL_Point point = events.getPoint();
-
-    Vector spawnLoc = Vector(width / 2, height / 2) - panningOffset;
-    sidebar.runSidebar(events, spawnLoc, objects, currentTimeRate, timeStep);
-    if (sidebar.editState)
-    {
-        editing = true;
-        simState = EDITING;
-    }
-
-    pointer = sidebar.checkHover(point, objects);
-
-    if (events.holdingClick && sidebar.selectedObject == -1 && !sidebar.sliderActivated)
-    {
-        pointer = true;
-        panningOffset += events.mouseOffset;
-    }
-
-    error = false;
-    for (CelestialObject obj1 : objects)
-    {
-        for (CelestialObject obj2 : objects)
+        obj1.kineticEnergy = 0.5 * getRealMass(obj1.mass) * pow(getRealDistance(obj1.velocity.magnitude()), 2);
+        obj1.potentialEnergy = 0;
+        for (CelestialObject &obj2 : objects)
         {
             if (obj1.name != obj2.name)
             {
-                if (SDL_HasIntersection(obj1.getRealRect(), obj2.getRealRect()))
-                {
-                    error = true;
-                }
+                obj1.potentialEnergy += (Utilities::g * getRealMass(obj2.mass) * getRealMass(obj1.mass)) / getRealDistance(obj2.position.distance(obj1.position));
             }
         }
     }
 }
 
-void Simulation::eventsHandler(Events events)
+void Simulation::runTrajectoryThread()
 {
-    if (events.checkSpecialKey(CTRL))
+    std::thread worker(&Simulation::calculateTrajectory, this);
+    worker.detach();
+}
+
+void Simulation::calculateTrajectory()
+{
+    Vector pos, prevPos, vel;
+    double rate;
+    int counter;
+    bool stop;
+
+    while (true)
     {
-        if (!pause && !error)
+        for (CelestialObject &obj : objects)
         {
-            focusedObject = -1;
-            editing = not editing;
-            sidebar.reset();
-            simState = (simState != MAIN) ? MAIN : EDITING;
-            for (CelestialObject &obj : objects)
+            rate = Utilities::getTimeRates()[timeRate].second;
+            pos = obj.position;
+            prevPos = pos;
+            vel = obj.velocity / rate * 3600.0;
+            counter = 0;
+            stop = false;
+            vector<Vector> positions;
+
+            for (int i = 0; i < 10000; i++)
             {
-                if (obj.object.frameTimer.isPaused())
+                SDL_Point trajectoryPoint = {(int)pos.x, (int)pos.y};
+                for (CelestialObject obj2 : objects)
                 {
-                    obj.object.frameTimer.unpause();
-                }
-                else
-                {
-                    obj.object.frameTimer.pause();
+                    if (obj.name != obj2.name)
+                    {
+                        if (SDL_PointInRect(&trajectoryPoint, obj2.getRealRect()))
+                        {
+                            stop = true;
+                        }
+
+                        Vector forceVector = obj2.position - pos;
+                        forceVector.normalize();
+
+                        double force = Utilities::getGravityForce(getRealMass(obj.mass), getRealMass(obj2.mass), getRealDistance(obj2.position.distance(pos)), 3600.0);
+                        forceVector *= (force / getRealMass(obj.mass));
+                        forceVector = forceVector.normalize() * scaleDistance(forceVector.magnitude());
+                        vel += forceVector * 0.001;
+                    }
                 }
 
-                if (obj.ctrl)
+                pos += vel * 0.001;
+                SDL_Rect *rect = obj.getRealRect();
+                if (!SDL_PointInRect(&trajectoryPoint, rect) && !stop)
                 {
-                    obj.ctrl = false;
-                }
-                else
-                {
-                    obj.ctrl = true;
+                    if (pos.distance(prevPos) >= 50 || counter == 0)
+                    {
+                        prevPos = pos;
+                        counter++;
+                        positions.push_back(pos);
+                    }
                 }
 
-                obj.editing = (obj.editing) ? false : obj.editing;
+                if (counter >= 100 || stop)
+                {
+                    break;
+                }
+            }
+            obj.storedTrajectories = positions;
+        }
+        std::this_thread::sleep_for(0.2s);
+    }
+}
+
+void Simulation::drawTrajectory(CelestialObject obj, Vector panningOffset)
+{
+    SDL_SetRenderDrawColor(renderer, 203, 195, 227, 100);
+    for (Vector v : obj.storedTrajectories)
+    {
+        trajectory.setCoords(v.x - trajectory.getWidth() / 2 + panningOffset.x, v.y - trajectory.getHeight() / 2 + panningOffset.y);
+        trajectory.render(renderer);
+    }
+}
+
+void Simulation::display(SDL_Rect *renderQuad, Vector panningOffset, double timeStep)
+{
+    for (CelestialObject &obj : objects)
+    {
+        if (obj.toggleParticles)
+        {
+            obj.particles.renderParticles(renderer, renderQuad, obj.objType, obj.position.x + (obj.particlePos.x * obj.radius), obj.position.y + (obj.particlePos.y * obj.radius), panningOffset, obj.particlePos * obj.radius, obj.particleExplosion, timeStep, obj.particleDurationTimer.isStarted());
+            if (obj.particleDurationTimer.getTicks() >= 500)
+            {
+                obj.particleDurationTimer.stop();
+                obj.particlePos = Vector(0, 0);
             }
         }
-    }
-    else if (events.checkSpecialKey(SHIFT) && focusedObject != -1)
-    {
-        distance = !distance;
-    }
-    else if (events.checkSpecialKey(SPACE) && simState != RETURN && simState != EDITING)
-    {
-        pause = not pause;
-    }
-    else if (events.checkSpecialKey(ESCAPE))
-    {
-        simState = (simState != RETURN) ? RETURN : MAIN;
-    }
-    else if (events.checkSpecialKey(RIGHT) && !pause && simState != RETURN && !view)
-    {
-        if (currentTimeRate < Utilities::getTimeRates().size() - 1)
+
+        if ((obj.objType == "Comet" || obj.objType == "Asteroid") && !obj.ctrl && obj.toggleParticles)
         {
-            currentTimeRate++;
-            for (CelestialObject &co : objects)
-            {
-                co.velocity *= Utilities::getTimeMultipliers()[currentTimeRate].second;
-            }
+            obj.particles.renderParticles(renderer, renderQuad, obj.objType, obj.position.x, obj.position.y, panningOffset, obj.velocity * -1, obj.particleExplosion, timeStep, true);
         }
-    }
-    else if (events.checkSpecialKey(LEFT) && !pause && simState != RETURN && !view)
-    {
-        if (currentTimeRate > 0)
+
+        if (obj.editing)
         {
-            for (CelestialObject &co : objects)
-            {
-                co.velocity /= Utilities::getTimeMultipliers()[currentTimeRate].second;
-            }
-            currentTimeRate--;
+            drawTrajectory(obj, panningOffset);
+        }
+        obj.rect = {(int)obj.position.x + (int)panningOffset.x - (int)obj.radius, (int)obj.position.y + (int)panningOffset.y - (int)obj.radius, (int)obj.radius * 2, (int)obj.radius * 2};
+        obj.realRect = {(int)obj.position.x + (int)panningOffset.x - (int)obj.radius, (int)obj.position.y + (int)panningOffset.y - (int)obj.radius, (int)obj.radius * 2, (int)obj.radius * 2};
+        if (obj.radius < 8)
+        {
+            obj.rect = {(int)obj.position.x - 8 + (int)panningOffset.x, (int)obj.position.y - 8 + (int)panningOffset.y, 16, 16};
+        }
+
+        SDL_Rect r = {(int)(obj.position.x - obj.radius), (int)(obj.position.y - obj.radius), (int)(obj.radius * 2), (int)(obj.radius * 2)};
+        if (SDL_HasIntersection(renderQuad, &r))
+        {
+            obj.object.render(obj.position.x - obj.radius + panningOffset.x, obj.position.y - obj.radius + panningOffset.y);
         }
     }
 }
 
-string Simulation::runSimulation(Events events, string state)
+void Simulation::updateAllSizes()
 {
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-    SDL_Point point = {mouseX, mouseY};
-
-    Vector currentMouse = Vector(mouseX, mouseY);
-
-    if (transition.transitionState == "Out")
+    for (CelestialObject &obj : objects)
     {
-        if (!dateTimer.isStarted())
-        {
-            dateTimer.start();
-            stepTimer.start();
-        }
+        obj.object = Animation(renderer, obj.folder, 1, 0.1);
+        obj.object.multiplier = (1 / obj.object.getWidth()) * (obj.radius * 2);
+        obj.object.loadFrames();
     }
+}
 
-    if (transition.transitionState == "Out" || transition.transitionState == "Done")
+void Simulation::displayTimeRate()
+{
+    string text = "1 " + Utilities::getTimeRates()[timeRate].first + "/sec";
+    rateTxt.setCoords(10, dateTxt.y - rateTxt.getHeight() - 5);
+    rateTxt.loadFromRenderedText(renderer, smallFont, text, textColor, 1);
+    rateTxt.render(renderer);
+}
+
+void Simulation::displaySimulationDate(int height)
+{
+    int totalTime = dateTimer.getTicks();
+    simSecs += ((totalTime - irlSecs) * Utilities::toSecs()[timeRate]);
+    irlSecs += (totalTime - irlSecs);
+
+    double tempSecs = simSecs;
+    string year = to_string((int)floor(tempSecs / 31556952000));
+    tempSecs = fmod(tempSecs, 31556952000);
+    string days = to_string((int)floor(tempSecs / 86400000));
+    tempSecs = fmod(tempSecs, 86400000);
+    string hours = to_string((int)floor(tempSecs / 3600000));
+    tempSecs = fmod(tempSecs, 3600000);
+    string mins = to_string((int)floor(tempSecs / 60000));
+    tempSecs = fmod(tempSecs, 60000);
+    string secs = to_string((int)floor(tempSecs / 1000));
+    tempSecs = fmod(tempSecs, 1000);
+
+    hours = (hours.length() == 1) ? "0" + hours : hours;
+    mins = (mins.length() == 1) ? "0" + mins : mins;
+    secs = (secs.length() == 1) ? "0" + secs : secs;
+
+    string text = "Year " + year + ", Day " + days + ", " + hours + ":" + mins + ":" + secs;
+    dateTxt.loadFromRenderedText(renderer, smallFont, text, textColor, 1);
+    dateTxt.setCoords(10, height - dateTxt.getHeight() - 10);
+    dateTxt.render(renderer);
+}
+
+void Simulation::displaySimulationStatus(bool paused, bool editing)
+{
+    modeTxt.setCoords(10, 0);
+    if (paused)
     {
-        drawBackground();
-        mainScreen(events);
-
-        if (transition.transitionState == "Done")
-        {
-            eventsHandler(events);
-
-            switch (simState)
-            {
-            case EDITING:
-            {
-                editScreen(events);
-                break;
-            };
-
-            case RETURN:
-            {
-                state = returnScreen(events, state);
-                break;
-            }
-            }
-        }
-
-        drawCursor(events);
-        pointer = false;
+        modeTxt.loadFromRenderedText(renderer, smallFont, "Paused", textColor, 1);
+        modeTxt.render(renderer);
     }
+    else if (editing)
+    {
+        modeTxt.loadFromRenderedText(renderer, smallFont, "Editing Mode", textColor, 1);
+        modeTxt.render(renderer);
+    }
+}
 
-    transition.runTransition();
+void Simulation::displayFocusedObject(string name, string objType)
+{
+    focusedTxt.setCoords(10, 0);
+    focusedTxt.loadFromRenderedText(renderer, smallFont, "Focused on " + name + " (" + objType + ")", textColor, 1.5);
+    focusedTxt.render(renderer);
+}
 
-    SDL_RenderPresent(renderer);
+void Simulation::displayObjectInfo(CelestialObject obj, int x, int y)
+{
+    std::stringstream radius;
+    std::stringstream mass;
+    std::stringstream velocity;
+    std::stringstream kinetic;
+    std::stringstream potential;
+    radius << getRealDistance(obj.radius);
+    mass << getRealMass(obj.mass);
+    velocity << getRealDistance(obj.velocity.magnitude()) / Utilities::getTimeRates()[timeRate].second;
+    kinetic << obj.kineticEnergy;
+    potential << obj.potentialEnergy;
 
-    return state;
+    rTxt.loadFromRenderedText(renderer, smallFont, radius.str() + " km", textColor);
+    mTxt.loadFromRenderedText(renderer, smallFont, mass.str() + " km", textColor);
+    vTxt.loadFromRenderedText(renderer, smallFont, velocity.str() + " km/s", textColor);
+    kTxt.loadFromRenderedText(renderer, smallFont, kinetic.str() + " J", textColor);
+    pTxt.loadFromRenderedText(renderer, smallFont, potential.str() + " J", textColor);
+
+    radiusTxt.setCoords(x + 10, y + 10);
+    rTxt.setCoords(x + 10, radiusTxt.y + radiusTxt.getHeight() + 5);
+    massTxt.setCoords(x + 10, rTxt.y + rTxt.getHeight() + 20);
+    mTxt.setCoords(x + 10, massTxt.y + massTxt.getHeight() + 5);
+    velocityTxt.setCoords(x + 10, mTxt.y + mTxt.getHeight() + 20);
+    vTxt.setCoords(x + 10, velocityTxt.y + velocityTxt.getHeight() + 5);
+    kineticTxt.setCoords(x + 10, vTxt.y + vTxt.getHeight() + 20);
+    kTxt.setCoords(x + 10, kineticTxt.y + kineticTxt.getHeight() + 5);
+    potentialTxt.setCoords(x + 10, kTxt.y + kTxt.getHeight() + 20);
+    pTxt.setCoords(x + 10, potentialTxt.y + potentialTxt.getHeight() + 5);
+
+    radiusTxt.render(renderer);
+    rTxt.render(renderer);
+    massTxt.render(renderer);
+    mTxt.render(renderer);
+    velocityTxt.render(renderer);
+    vTxt.render(renderer);
+    kineticTxt.render(renderer);
+    kTxt.render(renderer);
+    potentialTxt.render(renderer);
+    pTxt.render(renderer);
 }

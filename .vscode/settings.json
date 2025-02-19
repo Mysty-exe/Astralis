@@ -110,5 +110,5 @@
     "syncstream": "cpp",
     "valarray": "cpp"
   },
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.errorSquiggles": "enabled"
 }

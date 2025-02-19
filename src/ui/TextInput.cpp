@@ -136,7 +136,7 @@ void TextInput::render(Events events, int maxWidth, float xscroll, float yscroll
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     }
 
-    SDL_Rect renderQuad = {rect.x - xscroll, rect.y - yscroll, rect.w, rect.h};
+    SDL_Rect renderQuad = {(int)(rect.x - xscroll), (int)(rect.y - yscroll), rect.w, rect.h};
     SDL_RenderDrawRect(renderer, &renderQuad);
     SDL_SetRenderDrawColor(renderer, 177, 156, 217, 255);
     if (text.length() != 0)

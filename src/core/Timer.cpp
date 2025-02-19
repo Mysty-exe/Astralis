@@ -6,6 +6,7 @@ Timer::Timer()
     mPausedDuration = 0.0;
     mStarted = false;
     mPaused = false;
+    increment = 0;
 }
 
 void Timer::start()
@@ -50,12 +51,12 @@ double Timer::getTicks() const
         if (mPaused)
         {
             // Return the total time elapsed before pause
-            return mPausedDuration;
+            return increment + mPausedDuration;
         }
         else
         {
             // Return the total time elapsed, including unpaused time
-            return mPausedDuration + static_cast<double>(std::clock() - mStartTime) / CLOCKS_PER_SEC * 1000.0;
+            return increment + mPausedDuration + static_cast<double>(std::clock() - mStartTime) / CLOCKS_PER_SEC * 1000.0;
         }
     }
     return 0.0; // Timer is not running

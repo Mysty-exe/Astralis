@@ -4,9 +4,11 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/libs",
                 "${workspaceFolder}/libs/SDL2/include",
                 "${workspaceFolder}/libs/SDL2Image/include",
-                "${workspaceFolder}/libs/SDL2TTF/include"
+                "${workspaceFolder}/libs/SDL2TTF/include",
+                "${workspaceFolder}/libs/SDL2Mixer/include"
             ],
             "defines": [
                 "_DEBUG",

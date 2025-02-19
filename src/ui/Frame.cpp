@@ -13,7 +13,7 @@ Frame::Frame(SDL_Renderer *renderer, string name, string file, int x, int y, int
 
 void Frame::display(float xscroll, float yscroll)
 {
-    SDL_Rect tempRect = {rect.x - xscroll, rect.y - yscroll, rect.w, rect.h};
+    SDL_Rect tempRect = {(int)(rect.x - xscroll), (int)(rect.y - yscroll), (int)rect.w, (int)rect.h};
     SDL_RenderDrawLine(renderer, tempRect.x + 5, tempRect.y + tempRect.h, tempRect.x + tempRect.w - 5, tempRect.y + tempRect.h);
     SDL_RenderDrawLine(renderer, tempRect.x + tempRect.w - 1, tempRect.y + 5, tempRect.x + tempRect.w - 1, tempRect.y + tempRect.h - 5);
     object.render(tempRect.x + tempRect.w / 2 - object.getWidth() / 2, tempRect.y + tempRect.h / 2 - object.getHeight() / 2);

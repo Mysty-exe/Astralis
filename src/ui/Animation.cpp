@@ -11,6 +11,7 @@ Animation::Animation(SDL_Renderer *renderer, string folder, double multiplier, d
     this->multiplier = multiplier;
     this->frameSecs = frameSecs;
     currentFrame = 0;
+    free = false;
     loadFrames();
 }
 
@@ -28,6 +29,15 @@ void Animation::loadFrames()
         Image image;
         image.loadFromFile(renderer, folder + "/" + to_string(x) + ".png", multiplier);
         images.push_back(image);
+    }
+}
+
+void Animation::freeAll()
+{
+    free = true;
+    for (Image image : images)
+    {
+        image.free();
     }
 }
 

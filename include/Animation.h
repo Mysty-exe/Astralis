@@ -18,12 +18,14 @@ public:
     SDL_Renderer *renderer;
     vector<Image> images;
     double multiplier, currentFrame, frameSecs;
+    bool free;
     Timer frameTimer;
 
     Animation();
     Animation(SDL_Renderer *renderer, string folder, double multiplier, double frameSecs);
     void loadFrames();
     void render(float x, float y);
+    void freeAll();
     float getWidth();
     float getHeight();
 };

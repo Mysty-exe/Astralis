@@ -2,6 +2,7 @@
 #include <iostream>
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
 #include <string>
 #include <cmath>
 #include <Events.h>
@@ -21,8 +22,10 @@ private:
     string title;
     int width, height;
 
+    Mix_Chunk *clickSound;
+
     Animation titleTxtAnimation;
-    Image pointerCursor, handCursor, backgroundImg, titleTxt, newTxt, loadTxt, settingsTxt, quitTxt, newHoverTxt, loadHoverTxt, settingsHoverTxt, quitHoverTxt;
+    Image pointerCursor, handCursor, backgroundImg, titleTxt, newTxt, loadTxt, settingsTxt, quitTxt, newHoverTxt, loadHoverTxt, controlsTxt, controlsHoverTxt, quitHoverTxt;
     bool hovering;
 
     Timer stepTimer;
