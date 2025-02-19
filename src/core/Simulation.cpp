@@ -5,6 +5,7 @@ Simulation::Simulation()
 }
 
 Simulation::Simulation(SDL_Renderer *renderer, string name, double distRatio, double simRadius)
+Simulation::Simulation(SDL_Renderer *renderer, string name, double distRatio, double simRadius)
 {
     this->renderer = renderer;
     this->name = name;
@@ -41,7 +42,14 @@ long double Simulation::scaleDistance(long double dist)
 }
 
 long double Simulation::scaleMass(long double mass)
+long double Simulation::scaleMass(long double mass)
 {
+    return mass / pow(10, 24);
+}
+
+long double Simulation::getRealDistance(long double dist)
+{
+    return dist * distRatio;
     return mass / pow(10, 24);
 }
 
@@ -53,8 +61,23 @@ long double Simulation::getRealDistance(long double dist)
 long double Simulation::getRealMass(long double mass)
 {
     return mass * pow(10, 24);
+long double Simulation::getRealMass(long double mass)
+{
+    return mass * pow(10, 24);
 }
 
+void Simulation::scaleObjects(string n)
+{
+    for (CelestialObject &obj : objects)
+    {
+        if (obj.name == n)
+        {
+            obj.mass = scaleMass(obj.mass);
+            obj.radius = scaleDistance(obj.radius);
+            obj.updateRadius = scaleDistance(obj.updateRadius);
+            obj.velocity.x = scaleDistance(obj.velocity.x);
+            obj.velocity.y = scaleDistance(obj.velocity.y);
+            obj.updateSizeInstant(renderer);
 void Simulation::scaleObjects(string n)
 {
     for (CelestialObject &obj : objects)
@@ -164,7 +187,13 @@ void Simulation::applyVelocities(double timeStep)
 void Simulation::calculateEnergy()
 {
     for (CelestialObject &obj1 : objects)
+void Simulation::calculateEnergy()
+{
+    for (CelestialObject &obj1 : objects)
     {
+        obj1.kineticEnergy = 0.5 * getRealMass(obj1.mass) * pow(getRealDistance(obj1.velocity.magnitude()), 2);
+        obj1.potentialEnergy = 0;
+        for (CelestialObject &obj2 : objects)
         obj1.kineticEnergy = 0.5 * getRealMass(obj1.mass) * pow(getRealDistance(obj1.velocity.magnitude()), 2);
         obj1.potentialEnergy = 0;
         for (CelestialObject &obj2 : objects)

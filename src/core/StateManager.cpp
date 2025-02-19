@@ -53,28 +53,11 @@ void StateManager::run()
 
     while (state != "Quit")
     {
-        if (Mix_PlayingMusic() == 0)
-        {
-            Mix_PlayMusic(bgMusic, -1);
-        }
-
-        timeStep = stepTimer.getTicks() / 1000.0f;
-        timeStep = (timeStep <= 0) ? 0.001 : timeStep;
-        stepTimer.start();
-
         events.getEvents(windowEvent);
 
-        if (events.checkSpecialKey(M))
+        if (events.quit)
         {
-            mute = not mute;
-            if (mute)
-            {
-                Mix_VolumeMusic(0);
-            }
-            else
-            {
-                Mix_VolumeMusic(5);
-            }
+            state = "Quit";
         }
 
         if (state == "Menu")
