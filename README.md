@@ -31,7 +31,7 @@ No external dependencies need to be installed manually, as all required librarie
    ```
 3. Run the simulator:
    ```sh
-   ./simulator
+   ./build/main.exe
    ```
 
 ## Controls
@@ -48,7 +48,3 @@ No external dependencies need to be installed manually, as all required librarie
 ## File Storage
 
 Simulations are saved in JSON format and stored in the `data/` directory within the project folder.
-
-## Credits
-
-Developed by Omar Toure
