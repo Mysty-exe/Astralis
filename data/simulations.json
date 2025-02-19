@@ -1,1 +1,40 @@
-{}
+{
+    "Star Binary System": {
+        "distRatio": 5000.0,
+        "objects": {
+            "Star #1": {
+                "folder": "assets/Objects/Stars/Red Star",
+                "mass": 2e+30,
+                "objType": "Star",
+                "particles": true,
+                "position": [
+                    -395.81064837123716,
+                    -166.98829886141726
+                ],
+                "radius": 60000.0,
+                "velocity": [
+                    58.72696027719744,
+                    -82.1910921208916
+                ]
+            },
+            "Star #2": {
+                "folder": "assets/Objects/Stars/White Star",
+                "mass": 2e+30,
+                "objType": "Star",
+                "particles": true,
+                "position": [
+                    394.8106483712445,
+                    215.96363970461795
+                ],
+                "radius": 60000.0,
+                "velocity": [
+                    -58.72696027719743,
+                    82.1910921208916
+                ]
+            }
+        },
+        "objectsNum": 1,
+        "seconds": 2943767493.0,
+        "simRadius": 100000000.0
+    }
+}
