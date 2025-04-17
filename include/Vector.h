@@ -39,5 +39,6 @@ public:
     Vector normalize();
     double getRadians();
     double getAngle();
+    bool isNumber();
     void display();
 };

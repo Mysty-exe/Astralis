@@ -1,39 +1,35 @@
 #pragma once
-#include <iostream>
 #include <SDL.h>
-#include <SDL_ttf.h>
-#include <string>
-#include <vector>
-#include <Events.h>
-#include <Menu.h>
-#include <SimulationHandler.h>
-#include <Vector.h>
+#include <iostream>
+#include <Manager.h>
+#include <MenuManager.h>
+#include <SimulationManager.h>
+#include <Transition.h>
+#include <Camera.h>
+#include <Timer.h>
 
-using namespace std;
+enum ManagerState
+{
+    MENU,
+    SIMULATION,
+    SETTINGS,
+    QUIT
+};
 
-class StateManager
+class StateManager : public Manager
 {
 private:
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    Mix_Music *bgMusic;
-    string title, state;
-    int width, height;
-
-    Events events;
-    bool click, holdClick;
-
-    Menu menu;
-    SimulationHandler simulationHandler;
-    Timer stepTimer;
+    MenuManager menuManager;
+    SimulationManager simulationManager;
+    ManagerState currentState;
+    Timer stepTimer, saveTimer;
     double timeStep;
+    bool mute;
 
 public:
-    StateManager(SDL_Window *window, SDL_Renderer *renderer, string title, int width, int height);
-    string getTitle();
-    string getState();
-    void setState(string state);
-    int getWidth();
-    int getHeight();
-    void run();
+    StateManager(SDL_Renderer *renderer, int width, int height);
+    ManagerState getState();
+    void saveData();
+    void handleMusic(EventsManager EventsManager, MessageManager &messageManager);
+    void run(EventsManager eventManager, MessageManager messageManager, Transition *transition);
 };

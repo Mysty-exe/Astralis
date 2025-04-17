@@ -6,16 +6,18 @@
 #include <vector>
 #include <string>
 #include <Vector.h>
+#include <Texture.h>
 
 using namespace std;
 
 class Utilities
 {
 public:
+    static Texture message;
     static long double g;
-    static int numObjects;
+    static Vector getSizeRatio(Vector startSize, Vector endSize);
     static vector<pair<Vector, Vector>> getZoomScales(float width, float height);
-    static vector<vector<string>> getStellarObjects();
+    static vector<string> getStellarObjects();
     static vector<vector<string>> getStellarFiles();
     static vector<float> toSecs();
     static vector<float> getSubdividor();
@@ -32,4 +34,5 @@ public:
     static bool validateDirection(string degrees);
     static string getExponentForm(string num);
     static pair<string, string> parseInput(string input);
+    static void displayMessage(SDL_Renderer *renderer, float width, float height, string text, int messageLevel = 1);
 };

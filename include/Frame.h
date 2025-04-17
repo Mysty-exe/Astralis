@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <SDL.h>
-#include <Image.h>
+#include <Texture.h>
 #include <Animation.h>
 
 using namespace std;
@@ -11,14 +11,15 @@ class Frame
 {
 private:
     SDL_Renderer *renderer;
-    string name, file;
+    string file;
     SDL_Rect rect;
+    float size;
 
 public:
     Animation object;
-    Frame(SDL_Renderer *renderer, string name, string file, int x, int y, int w, int h);
-    void display(float xscroll, float yscroll);
-    string getName();
+    Frame(SDL_Renderer *renderer, string file, float size);
+    void display(float x, float y, float xscroll = 0, float yscroll = 0);
     string getFile();
-    SDL_Rect getRect();
+    SDL_Rect *getRect();
+    float getSize();
 };

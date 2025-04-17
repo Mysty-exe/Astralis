@@ -1,1 +1,52 @@
-{}
+{
+    "Single Star System": {
+        "distRatio": 5000.0,
+        "objects": {
+            "Planet #1": {
+                "folder": "Assets/Objects/Planets/Earth",
+                "mass": 6e+24,
+                "objType": "Planet",
+                "position": [
+                    -15.162177839682728,
+                    114.37681727911914
+                ],
+                "radius": 25000.0,
+                "velocity": [
+                    404.0138511488717,
+                    217.08290275736215
+                ]
+            },
+            "Planet #2": {
+                "folder": "Assets/Objects/Planets/Neptune",
+                "mass": 6e+24,
+                "objType": "Planet",
+                "position": [
+                    617.0871683475857,
+                    -113.9785897755924
+                ],
+                "radius": 30000.0,
+                "velocity": [
+                    -58.579099357634085,
+                    -154.38543095827603
+                ]
+            },
+            "Sun": {
+                "folder": "Assets/Objects/Stars/Red Star",
+                "mass": 2.000016e+30,
+                "objType": "Star",
+                "position": [
+                    2.607915523611364,
+                    -17.916452773151082
+                ],
+                "radius": 100518.14396472643,
+                "velocity": [
+                    -0.0009927152054958286,
+                    -0.0011829626935940573
+                ]
+            }
+        },
+        "objectsNum": 1,
+        "seconds": 255315967.0,
+        "simRadius": 100000000.0
+    }
+}

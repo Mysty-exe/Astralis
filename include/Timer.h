@@ -3,20 +3,23 @@
 
 class Timer
 {
-public:
-    std::clock_t mStartTime; // Start time in clock ticks
-    double mPausedDuration;  // Total paused duration in milliseconds
-    bool mStarted;           // Is the timer running?
-    bool mPaused;            // Is the timer paused?
+private:
+    std::clock_t mStartTime;
+    double mPausedDuration;
+    bool mStarted;
+    bool mPaused;
     double increment;
+
+public:
     Timer();
 
+    void reset();
     void start();
     void stop();
     void pause();
     void unpause();
 
-    double getTicks() const; // Returns elapsed time in milliseconds
+    double getTicks() const;
     bool isStarted() const;
     bool isPaused() const;
 };

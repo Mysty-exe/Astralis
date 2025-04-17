@@ -1,31 +1,29 @@
 #pragma once
 #include <iostream>
 #include <SDL.h>
-#include <Image.h>
-#include <string>
+#include <Texture.h>
+#include <Vector.h>
 #include <vector>
 #include <Timer.h>
 #include <filesystem>
-
-using namespace std;
 
 class Animation
 {
 private:
     string folder;
-
-public:
-    SDL_Renderer *renderer;
-    vector<Image> images;
-    double multiplier, currentFrame, frameSecs;
-    bool free;
+    std::vector<Texture> images;
+    double currentFrame, frameSecs;
     Timer frameTimer;
 
+public:
     Animation();
-    Animation(SDL_Renderer *renderer, string folder, double multiplier, double frameSecs);
-    void loadFrames();
-    void render(float x, float y);
+    void loadAnimation(SDL_Renderer *renderer, string folder, Vector multiplier, double frameSecs);
+    void loadFrames(SDL_Renderer *renderer, Vector multiplier);
+    void render(SDL_Renderer *renderer, float x, float y);
     void freeAll();
+    Vector getPos();
     float getWidth();
     float getHeight();
+    Vector getSize();
+    int getCurrentFrame();
 };

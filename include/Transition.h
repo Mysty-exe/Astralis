@@ -4,7 +4,7 @@
 #include <string>
 #include <Animation.h>
 #include <Timer.h>
-#include <Image.h>
+#include <Texture.h>
 #include <vector>
 #include <Vector.h>
 #include <Timer.h>
@@ -20,11 +20,14 @@ private:
     Timer pixelateTimer, holdTimer;
     vector<Vector> locations;
     vector<Vector> drawLocations;
+    string transitionState;
 
 public:
-    string transitionState;
     Transition();
     Transition(SDL_Renderer *renderer, int width, int height, double holdSpeed);
+    void resizeDimensions(float width, float height);
+    string getTransitionState();
+    void setTransitionState(string state);
     void getPossibleLocations();
     string runTransition();
 };

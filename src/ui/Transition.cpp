@@ -7,10 +7,26 @@ Transition::Transition()
 Transition::Transition(SDL_Renderer *renderer, int width, int height, double holdSpeed)
 {
     this->renderer = renderer;
-    this->width = width;
-    this->height = height;
     this->holdSpeed = holdSpeed;
     transitionState = "Done";
+    resizeDimensions(width, height);
+    getPossibleLocations();
+}
+
+void Transition::resizeDimensions(float width, float height)
+{
+    this->width = width;
+    this->height = height;
+}
+
+string Transition::getTransitionState()
+{
+    return transitionState;
+}
+
+void Transition::setTransitionState(string state)
+{
+    transitionState = state;
     getPossibleLocations();
 }
 

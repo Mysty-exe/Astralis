@@ -4,18 +4,16 @@ Animation::Animation()
 {
 }
 
-Animation::Animation(SDL_Renderer *renderer, string folder, double multiplier, double frameSecs)
+void Animation::loadAnimation(SDL_Renderer *renderer, string folder, Vector multiplier, double frameSecs)
 {
-    this->renderer = renderer;
-    this->folder = folder;
-    this->multiplier = multiplier;
     this->frameSecs = frameSecs;
+    this->folder = folder;
     currentFrame = 0;
-    free = false;
-    loadFrames();
+    images = {};
+    loadFrames(renderer, multiplier);
 }
 
-void Animation::loadFrames()
+void Animation::loadFrames(SDL_Renderer *renderer, Vector multiplier)
 {
     images.clear();
     int size = -1;
@@ -26,7 +24,7 @@ void Animation::loadFrames()
 
     for (int x = 1; x <= size; x++)
     {
-        Image image;
+        Texture image;
         image.loadFromFile(renderer, folder + "/" + to_string(x) + ".png", multiplier);
         images.push_back(image);
     }
@@ -34,14 +32,14 @@ void Animation::loadFrames()
 
 void Animation::freeAll()
 {
-    free = true;
-    for (Image image : images)
+    for (Texture image : images)
     {
         image.free();
     }
+    images = {};
 }
 
-void Animation::render(float x, float y)
+void Animation::render(SDL_Renderer *renderer, float x, float y)
 {
     if (!frameTimer.isStarted())
     {
@@ -63,6 +61,11 @@ void Animation::render(float x, float y)
     }
 }
 
+Vector Animation::getPos()
+{
+    return Vector(images[currentFrame].getX(), images[currentFrame].getY());
+}
+
 float Animation::getWidth()
 {
     return images[0].getWidth();
@@ -71,4 +74,14 @@ float Animation::getWidth()
 float Animation::getHeight()
 {
     return images[0].getHeight();
+}
+
+Vector Animation::getSize()
+{
+    return images[0].getSize();
+}
+
+int Animation::getCurrentFrame()
+{
+    return currentFrame;
 }
