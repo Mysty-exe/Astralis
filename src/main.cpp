@@ -6,6 +6,7 @@
 #include <EventsManager.h>
 #include <StateManager.h>
 #include <Transition.h>
+#include <filesystem>
 
 using namespace std;
 
@@ -22,7 +23,9 @@ int main(int argc, char *argv[])
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     SDL_SetWindowMinimumSize(window, 900, 600);
 
-    SDL_Surface *icon = IMG_Load("assets/Icons/gameIcon.png");
+    std::filesystem::current_path(filesystem::path(argv[0]).parent_path());
+
+    SDL_Surface *icon = IMG_Load("Assets/Icons/gameIcon.png");
     SDL_SetWindowIcon(window, icon);
     SDL_ShowCursor(SDL_DISABLE);
 
