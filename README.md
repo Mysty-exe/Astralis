@@ -36,15 +36,23 @@ No external dependencies need to be installed manually, as all required librarie
 
 ## Controls
 
-- **Pan:** Mouse drag
+- **Pan:** Mouse Drag
+- **Zoom In:** Mouse Scroll Wheel
 - **Editing Mode:** Ctrl
-- **Add object:** Use the editing tab
-- **Modify object:** Right Click on an object in editing mode and adjust its properties
+- **Add object:** Click Arrow to the right in Editing Mode
+- **Modify object:** Right Click on an object in Editing Mode
 - **Pause/Resume:** Spacebar
-- **Left/Right Arrows:** Change Time Rate
-- **Save Simulation:** Simulations are automatically save when closed
-- **Load Simulation:** Choose a saved file from the list
+- **Left/Right Arrows:** Speed Up/Slow Down Simulation
+- **Save Simulation:** Simulations are Automatically Saved
 
 ## File Storage
 
 Simulations are saved in JSON format and stored in the `data/` directory within the project folder.
+
+## Screenshots
+
+![Menu](Screenshots/Menu.png)
+![Create Simulation](Screenshots/CreateSim.png)
+![Simulation #1](Screenshots/Sim1.png)
+![Simulation #2](Screenshots/Sim2.png)
+![Editing Simulation](Screenshots/EditSim.png)

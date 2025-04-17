@@ -38,6 +38,7 @@ void Simulation::reset()
     {
         obj.setVelocity(obj.getVelocity() / Utilities::getTimeRates()[timeRate].second);
     }
+    editing = false;
     focusedObject = -1;
     timeRate = 0;
 }
