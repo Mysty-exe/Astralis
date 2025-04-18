@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++20 -I./include -I./libs -I./libs/SDL2/include -I./libs/SDL2Image/include -I./libs/SDL2TTF/include -I./libs/SDL2Mixer/include
-LDFLAGS = -L./libs/SDL2/lib -L./libs/SDL2Image/lib -L./libs/SDL2TTF/lib -L./libs/SDL2Mixer/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+LDFLAGS = -mwindows -L./libs/SDL2/lib -L./libs/SDL2Image/lib -L./libs/SDL2TTF/lib -L./libs/SDL2Mixer/lib icon.o -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 
 # Target executable name
 TARGET = build/Astralis.exe
@@ -19,6 +19,7 @@ $(TARGET): $(SRC_FILES)
 
 # Run the executable
 run: $(TARGET)
+	cls
 	$(TARGET)
 
 # Clean up generated files
