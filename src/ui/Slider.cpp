@@ -13,7 +13,7 @@ Slider::Slider(SDL_Renderer *renderer, float width, float height, float min, flo
     this->value = value;
     real = true;
     activated = false;
-    circle.loadFromFile(renderer, "Assets/Trajectory/circle.png", Vector(0.3, 0.3));
+    circle.loadFromFile(renderer, "../Assets/Trajectory/circle.png", Vector(0.3, 0.3));
 }
 
 bool Slider::isReal()

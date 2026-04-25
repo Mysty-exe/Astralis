@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     std::filesystem::current_path(filesystem::path(argv[0]).parent_path());
 
-    SDL_Surface *icon = IMG_Load("Assets/Icons/gameIcon.png");
+    SDL_Surface *icon = IMG_Load("../Assets/Icons/gameIcon.png");
     SDL_SetWindowIcon(window, icon);
     SDL_ShowCursor(SDL_DISABLE);
 

@@ -11,14 +11,14 @@ Manager::Manager(SDL_Renderer *renderer, int width, int height)
     this->width = width;
     this->height = height;
 
-    bgMusic = Mix_LoadMUS("assets/Audio/spaceBgSound.mp3");
-    clickSound = Mix_LoadWAV("assets/Audio/click.wav");
-    pointerCursor.loadFromFile(renderer, "Assets/Cursor/pointer.png", getWindowRatio());
-    handCursor.loadFromFile(renderer, "Assets/Cursor/hand.png", getWindowRatio());
+    bgMusic = Mix_LoadMUS("../Assets/Audio/spaceBgSound.mp3");
+    clickSound = Mix_LoadWAV("../Assets/Audio/click.wav");
+    pointerCursor.loadFromFile(renderer, "../Assets/Cursor/pointer.png", getWindowRatio());
+    handCursor.loadFromFile(renderer, "../Assets/Cursor/hand.png", getWindowRatio());
 
-    largeFont = TTF_OpenFont("assets/Fonts/font.otf", 30);
-    bigFont = TTF_OpenFont("assets/Fonts/font.otf", 24);
-    smallFont = TTF_OpenFont("assets/Fonts/font.otf", 14);
+    largeFont = TTF_OpenFont("../Assets/Fonts/font.otf", 30);
+    bigFont = TTF_OpenFont("../Assets/Fonts/font.otf", 24);
+    smallFont = TTF_OpenFont("../Assets/Fonts/font.otf", 14);
 
     Mix_VolumeChunk(clickSound, 5);
 }

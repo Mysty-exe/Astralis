@@ -57,31 +57,31 @@ void SimulationManager::resetSimulation()
 void SimulationManager::loadImages()
 {
     simulationTexture.createRenderableTexture(renderer, width, height, SDL_TEXTUREACCESS_TARGET);
-    background.loadAnimation(renderer, "Assets/Backgrounds/Game Background", Vector(1, 1), 1);
-    loadingTrajectory.loadAnimation(renderer, "Assets/Trajectory/Trajectory Text", Vector(1, 1), 0.5);
+    background.loadAnimation(renderer, "../Assets/Backgrounds/Game Background", Vector(1, 1), 1);
+    loadingTrajectory.loadAnimation(renderer, "../Assets/Trajectory/Trajectory Text", Vector(1, 1), 0.5);
 
-    returnTxt.loadFromFile(renderer, "Assets/Return/mainMenuTxt.png", getWindowRatio());
+    returnTxt.loadFromFile(renderer, "../Assets/Return/mainMenuTxt.png", getWindowRatio());
     returnTxt.setCoords(width / 2 - returnTxt.getWidth() / 2, height / 6);
 
-    yesTxt.loadFromFile(renderer, "Assets/Return/yesTxt.png", getWindowRatio());
+    yesTxt.loadFromFile(renderer, "../Assets/Return/yesTxt.png", getWindowRatio());
     yesTxt.setCoords(width / 2 - yesTxt.getWidth() / 2, returnTxt.getY() + height / 3);
-    yesHoverTxt.loadFromFile(renderer, "Assets/Return/yesHoverTxt.png", getWindowRatio());
+    yesHoverTxt.loadFromFile(renderer, "../Assets/Return/yesHoverTxt.png", getWindowRatio());
     yesHoverTxt.setCoords(width / 2 - yesHoverTxt.getWidth() / 2, returnTxt.getY() + height / 3);
 
-    noTxt.loadFromFile(renderer, "Assets/Return/noTxt.png", getWindowRatio());
+    noTxt.loadFromFile(renderer, "../Assets/Return/noTxt.png", getWindowRatio());
     noTxt.setCoords(width / 2 - noTxt.getWidth() / 2, yesTxt.getY() + height / 6);
-    noHoverTxt.loadFromFile(renderer, "Assets/Return/noHoverTxt.png", getWindowRatio());
+    noHoverTxt.loadFromFile(renderer, "../Assets/Return/noHoverTxt.png", getWindowRatio());
     noHoverTxt.setCoords(width / 2 - noHoverTxt.getWidth() / 2, yesTxt.getY() + height / 6);
 
-    inArrowTab.loadFromFile(renderer, "Assets/Arrow Tab/in.png", getWindowRatio());
+    inArrowTab.loadFromFile(renderer, "../Assets/Arrow Tab/in.png", getWindowRatio());
     inArrowTab.setCoords(0, height / 2 - inArrowTab.getHeight() / 2);
-    outArrowTab.loadFromFile(renderer, "Assets/Arrow Tab/out.png", getWindowRatio());
+    outArrowTab.loadFromFile(renderer, "../Assets/Arrow Tab/out.png", getWindowRatio());
     outArrowTab.setCoords(width / 4, height / 2 - outArrowTab.getHeight() / 2);
 
-    duplicateIcon.loadFromFile(renderer, "Assets/Icons/duplicateIcon.png", getWindowRatio());
-    duplicateHoverIcon.loadFromFile(renderer, "Assets/Icons/duplicateHoverIcon.png", getWindowRatio());
-    binIcon.loadFromFile(renderer, "Assets/Icons/binIcon.png", getWindowRatio());
-    binHoverIcon.loadFromFile(renderer, "Assets/Icons/binHoverIcon.png", getWindowRatio());
+    duplicateIcon.loadFromFile(renderer, "../Assets/Icons/duplicateIcon.png", getWindowRatio());
+    duplicateHoverIcon.loadFromFile(renderer, "../Assets/Icons/duplicateHoverIcon.png", getWindowRatio());
+    binIcon.loadFromFile(renderer, "../Assets/Icons/binIcon.png", getWindowRatio());
+    binHoverIcon.loadFromFile(renderer, "../Assets/Icons/binHoverIcon.png", getWindowRatio());
 
     loadFrames();
 }

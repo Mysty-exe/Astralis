@@ -26,9 +26,9 @@ MenuManager::MenuManager(SDL_Renderer *renderer, int width, int height) : Manage
 
 void MenuManager::loadSimulationData(vector<Simulation> *simulations)
 {
-    ifstream f1("data/templates.json");
+    ifstream f1("../data/templates.json");
     json templatesData = json::parse(f1);
-    ifstream f2("data/simulations.json");
+    ifstream f2("../data/simulations.json");
     json simulationsData = json::parse(f2);
 
     for (const auto &d : templatesData.items())
@@ -63,7 +63,7 @@ void MenuManager::loadSimulationData(vector<Simulation> *simulations)
 void MenuManager::saveSimulationData(vector<Simulation> *simulations)
 {
     json simData;
-    std::ofstream o("data/simulations.json");
+    std::ofstream o("../data/simulations.json");
     for (Simulation sim : *simulations)
     {
         json objectsData;
@@ -93,56 +93,56 @@ void MenuManager::saveSimulationData(vector<Simulation> *simulations)
 
 void MenuManager::loadImages()
 {
-    titleTxtAnimation.loadAnimation(renderer, "Assets/Title Animation", getWindowRatio(), 0.1);
-    backgroundImg.loadFromFile(renderer, "Assets/Backgrounds/Menu Background/menuBackground.png", getWindowRatio());
+    titleTxtAnimation.loadAnimation(renderer, "../Assets/Title Animation", getWindowRatio(), 0.1);
+    backgroundImg.loadFromFile(renderer, "../Assets/Backgrounds/Menu Background/menuBackground.png", getWindowRatio());
 
-    newTxt.loadFromFile(renderer, "Assets/Menu Buttons/Regular/new.png", getWindowRatio());
+    newTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Regular/new.png", getWindowRatio());
     newTxt.setCoords(width / 2 - newTxt.getWidth() / 2, height / 3);
-    newHoverTxt.loadFromFile(renderer, "Assets/Menu Buttons/Hovering/new.png", getWindowRatio());
+    newHoverTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Hovering/new.png", getWindowRatio());
     newHoverTxt.setCoords(width / 2 - newTxt.getWidth() / 2, height / 3);
 
-    loadTxt.loadFromFile(renderer, "Assets/Menu Buttons/Regular/load.png", getWindowRatio());
+    loadTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Regular/load.png", getWindowRatio());
     loadTxt.setCoords(width / 2 - loadTxt.getWidth() / 2, newTxt.getY() + height / 6);
-    loadHoverTxt.loadFromFile(renderer, "Assets/Menu Buttons/Hovering/load.png", getWindowRatio());
+    loadHoverTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Hovering/load.png", getWindowRatio());
     loadHoverTxt.setCoords(width / 2 - loadTxt.getWidth() / 2, newTxt.getY() + height / 6);
 
-    controlsTxt.loadFromFile(renderer, "Assets/Menu Buttons/Regular/controls.png", getWindowRatio());
+    controlsTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Regular/controls.png", getWindowRatio());
     controlsTxt.setCoords(width / 2 - controlsTxt.getWidth() / 2, loadTxt.getY() + height / 6);
-    controlsHoverTxt.loadFromFile(renderer, "Assets/Menu Buttons/Hovering/controls.png", getWindowRatio());
+    controlsHoverTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Hovering/controls.png", getWindowRatio());
     controlsHoverTxt.setCoords(width / 2 - controlsTxt.getWidth() / 2, loadTxt.getY() + height / 6);
 
-    quitTxt.loadFromFile(renderer, "Assets/Menu Buttons/Regular/quit.png", getWindowRatio());
+    quitTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Regular/quit.png", getWindowRatio());
     quitTxt.setCoords(width / 2 - quitTxt.getWidth() / 2, controlsTxt.getY() + height / 6);
-    quitHoverTxt.loadFromFile(renderer, "Assets/Menu Buttons/Hovering/quit.png", getWindowRatio());
+    quitHoverTxt.loadFromFile(renderer, "../Assets/Menu Buttons/Hovering/quit.png", getWindowRatio());
     quitHoverTxt.setCoords(width / 2 - quitTxt.getWidth() / 2, controlsTxt.getY() + height / 6);
 
-    arrow.loadFromFile(renderer, "Assets/Back Arrow/arrow.png", getWindowRatio());
-    arrowHover.loadFromFile(renderer, "Assets/Back Arrow/arrowHover.png", getWindowRatio());
+    arrow.loadFromFile(renderer, "../Assets/Back Arrow/arrow.png", getWindowRatio());
+    arrowHover.loadFromFile(renderer, "../Assets/Back Arrow/arrowHover.png", getWindowRatio());
     arrow.setCoords(20, 25);
     arrowHover.setCoords(20, 25);
 
-    newSimulationTxt.loadFromFile(renderer, "Assets/Menu Headers/newSimHeader.png", getWindowRatio());
+    newSimulationTxt.loadFromFile(renderer, "../Assets/Menu Headers/newSimHeader.png", getWindowRatio());
     newSimulationTxt.setCoords(arrow.getEndX() + 40, arrow.getMiddleY() - newSimulationTxt.getHeight() / 2);
 
     newHeaderTxt.loadFromRenderedText(renderer, largeFont, "New", {255, 255, 255}, getWindowRatio());
-    templateHeaderTxt.loadFromFile(renderer, "assets/Menu Headers/templatesHeader.png", getWindowRatio() * 1.5);
+    templateHeaderTxt.loadFromFile(renderer, "../Assets/Menu Headers/templatesHeader.png", getWindowRatio() * 1.5);
 
-    loadSimulationTxt.loadFromFile(renderer, "Assets/Menu Headers/loadHeader.png", getWindowRatio());
+    loadSimulationTxt.loadFromFile(renderer, "../Assets/Menu Headers/loadHeader.png", getWindowRatio());
     loadSimulationTxt.setCoords(arrow.getEndX() + 40, arrow.getMiddleY() - loadSimulationTxt.getHeight() / 2);
 
-    editSimulationTxt.loadFromFile(renderer, "Assets/Menu Headers/editSimHeader.png", getWindowRatio());
+    editSimulationTxt.loadFromFile(renderer, "../Assets/Menu Headers/editSimHeader.png", getWindowRatio());
     editSimulationTxt.setCoords(arrow.getEndX() + 40, arrow.getMiddleY() - editSimulationTxt.getHeight() / 2);
 
-    noPastSimsTxt.loadFromFile(renderer, "Assets/Menu Headers/noPastSimsHeader.png", getWindowRatio());
+    noPastSimsTxt.loadFromFile(renderer, "../Assets/Menu Headers/noPastSimsHeader.png", getWindowRatio());
 
-    controlsHeaderTxt.loadFromFile(renderer, "assets/Menu Headers/controlsHeader.png", getWindowRatio());
+    controlsHeaderTxt.loadFromFile(renderer, "../Assets/Menu Headers/controlsHeader.png", getWindowRatio());
     controlsHeaderTxt.setCoords(arrow.getEndX() + 40, arrow.getMiddleY() - controlsHeaderTxt.getHeight() / 2);
-    allControlsTxt.loadFromFile(renderer, "assets/Controls Menu/controls.png", getWindowRatio());
+    allControlsTxt.loadFromFile(renderer, "../Assets/Controls Menu/controls.png", getWindowRatio());
 
-    editIcon.loadFromFile(renderer, "Assets/Icons/editIcon.png", getWindowRatio());
-    editHoverIcon.loadFromFile(renderer, "Assets/Icons/editHoverIcon.png", getWindowRatio());
-    binIcon.loadFromFile(renderer, "Assets/Icons/binIcon.png", getWindowRatio());
-    binHoverIcon.loadFromFile(renderer, "Assets/Icons/binHoverIcon.png", getWindowRatio());
+    editIcon.loadFromFile(renderer, "../Assets/Icons/editIcon.png", getWindowRatio());
+    editHoverIcon.loadFromFile(renderer, "../Assets/Icons/editHoverIcon.png", getWindowRatio());
+    binIcon.loadFromFile(renderer, "../Assets/Icons/binIcon.png", getWindowRatio());
+    binHoverIcon.loadFromFile(renderer, "../Assets/Icons/binHoverIcon.png", getWindowRatio());
 }
 
 MenuState MenuManager::getCurrentState()

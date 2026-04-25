@@ -28,10 +28,10 @@ vector<string> Utilities::getStellarObjects()
 
 vector<vector<string>> Utilities::getStellarFiles()
 {
-    vector<string> stars = {"assets/Objects/Stars/Red Star", "assets/Objects/Stars/White Star", "assets/Objects/Stars/Blue Star", "assets/Objects/Stars/Green Star", "assets/Objects/Stars/Purple Star"};
-    vector<string> planets = {"assets/Objects/Planets/Mercury", "assets/Objects/Planets/Venus", "assets/Objects/Planets/Earth", "assets/Objects/Planets/Mars", "assets/Objects/Planets/Jupiter", "assets/Objects/Planets/Uranus", "assets/Objects/Planets/Neptune", "assets/Objects/Planets/Pluto"};
-    vector<string> moons = {"assets/Objects/Moons/Moon", "assets/Objects/Moons/Europa", "assets/Objects/Moons/Triton"};
-    vector<string> asteroids = {"assets/Objects/Asteroid"};
+    vector<string> stars = {"../Assets/Objects/Stars/Red Star", "../Assets/Objects/Stars/White Star", "../Assets/Objects/Stars/Blue Star", "../Assets/Objects/Stars/Green Star", "../Assets/Objects/Stars/Purple Star"};
+    vector<string> planets = {"../Assets/Objects/Planets/Mercury", "../Assets/Objects/Planets/Venus", "../Assets/Objects/Planets/Earth", "../Assets/Objects/Planets/Mars", "../Assets/Objects/Planets/Jupiter", "../Assets/Objects/Planets/Uranus", "../Assets/Objects/Planets/Neptune", "../Assets/Objects/Planets/Pluto"};
+    vector<string> moons = {"../Assets/Objects/Moons/Moon", "../Assets/Objects/Moons/Europa", "../Assets/Objects/Moons/Triton"};
+    vector<string> asteroids = {"../Assets/Objects/Asteroid"};
     vector<vector<string>> stellarObjects = {stars, planets, moons, asteroids};
     return stellarObjects;
 }
@@ -282,7 +282,7 @@ pair<string, string> Utilities::parseInput(string input)
 
 void Utilities::displayMessage(SDL_Renderer *renderer, float width, float height, string text, int messageLevel)
 {
-    message.loadFromRenderedText(renderer, TTF_OpenFont("assets/Fonts/font.otf", 18), text, {255, 255, 255});
+    message.loadFromRenderedText(renderer, TTF_OpenFont("../Assets/Fonts/font.otf", 18), text, {255, 255, 255});
 
     int y = height - ((message.getHeight() + 30) * messageLevel);
     message.setCoords(width / 2 - message.getWidth() / 2, y);

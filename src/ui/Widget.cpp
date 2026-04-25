@@ -10,9 +10,9 @@ Widget::Widget(SDL_Renderer *renderer, string text)
     this->text = text;
     isActivated = false;
 
-    headerFont = TTF_OpenFont("assets/Fonts/font.otf", 24);
-    regFont = TTF_OpenFont("assets/Fonts/font.otf", 16);
-    hintFont = TTF_OpenFont("assets/Fonts/font.otf", 12);
+    headerFont = TTF_OpenFont("../Assets/Fonts/font.otf", 24);
+    regFont = TTF_OpenFont("../Assets/Fonts/font.otf", 16);
+    hintFont = TTF_OpenFont("../Assets/Fonts/font.otf", 12);
 }
 
 bool Widget::getError()

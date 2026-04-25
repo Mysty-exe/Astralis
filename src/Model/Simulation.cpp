@@ -15,9 +15,9 @@ Simulation::Simulation(SDL_Renderer *renderer, string name, double distRatio, do
     objectsNum = 1;
     focusedObject = -1;
 
-    font = TTF_OpenFont("assets/Fonts/font.otf", 24);
-    smallFont = TTF_OpenFont("assets/Fonts/font.otf", 16);
-    tinyFont = TTF_OpenFont("assets/Fonts/font.otf", 12);
+    font = TTF_OpenFont("../Assets/Fonts/font.otf", 24);
+    smallFont = TTF_OpenFont("../Assets/Fonts/font.otf", 16);
+    tinyFont = TTF_OpenFont("../Assets/Fonts/font.otf", 12);
 
     irlSecs = 0;
     simSecs = 0;
@@ -55,7 +55,7 @@ void Simulation::loadImages(Vector windowRatio)
     velocityTxtImg.loadFromRenderedText(renderer, font, "Velocity", {177, 156, 217}, windowRatio);
     kineticTxtImg.loadFromRenderedText(renderer, font, "Kinetic Energy", {177, 156, 217}, windowRatio);
     potentialTxtImg.loadFromRenderedText(renderer, font, "Potential Energy", {177, 156, 217}, windowRatio);
-    trajectoryImg.loadFromFile(renderer, "Assets/Trajectory/circle.png", Vector(0.5, 0.5) * windowRatio);
+    trajectoryImg.loadFromFile(renderer, "../Assets/Trajectory/circle.png", Vector(0.5, 0.5) * windowRatio);
 }
 
 void Simulation::resizeViewObjects(float width, float height)

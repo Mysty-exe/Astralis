@@ -49,7 +49,7 @@ CelestialObject::CelestialObject(SDL_Renderer *renderer, int width, int height, 
     rect = {(int)position.x - (int)radius, (int)position.y - (int)radius, (int)radius * 2, (int)radius * 2};
     realRect = {(int)position.x - (int)radius, (int)position.y - (int)radius, (int)radius * 2, (int)radius * 2};
 
-    nameTxt.loadFromRenderedText(renderer, TTF_OpenFont("assets/Fonts/quicksand.otf", 20), name + " - (" + getObjType(this->objType) + ")", {255, 255, 255});
+    nameTxt.loadFromRenderedText(renderer, TTF_OpenFont("../Assets/Fonts/quicksand.otf", 20), name + " - (" + getObjType(this->objType) + ")", {255, 255, 255});
 
     object.loadAnimation(renderer, fileName, Vector(1, 1), 0.1);
     object.loadFrames(renderer, Utilities::getSizeRatio(object.getSize(), Vector(radius, radius)));
@@ -93,7 +93,7 @@ CelestialObject::CelestialObject(SDL_Renderer *renderer, int width, int height, 
         this->objType = ASTEROID;
     }
 
-    nameTxt.loadFromRenderedText(renderer, TTF_OpenFont("assets/Fonts/quicksand.otf", 20), name + " - (" + getObjType(this->objType) + ")", {255, 255, 255});
+    nameTxt.loadFromRenderedText(renderer, TTF_OpenFont("../Assets/Fonts/quicksand.otf", 20), name + " - (" + getObjType(this->objType) + ")", {255, 255, 255});
 
     object.loadAnimation(renderer, fileName, Vector(1, 1), 0.1);
     object.loadFrames(renderer, Utilities::getSizeRatio(object.getSize(), Vector(radius * 2, radius * 2)));
@@ -287,7 +287,7 @@ string CelestialObject::getObjType(CelestialType objType)
 void CelestialObject::setName(SDL_Renderer *renderer, string name)
 {
     this->name = name;
-    nameTxt.loadFromRenderedText(renderer, TTF_OpenFont("assets/Fonts/quicksand.otf", 20), name + " - (" + getObjType(objType) + ")", {255, 255, 255});
+    nameTxt.loadFromRenderedText(renderer, TTF_OpenFont("../Assets/Fonts/quicksand.otf", 20), name + " - (" + getObjType(objType) + ")", {255, 255, 255});
 }
 
 void CelestialObject::renderViewDisplay(float x, float y, float width, float height)

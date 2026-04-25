@@ -7,7 +7,7 @@ Overlay::Overlay()
 Overlay::Overlay(SDL_Renderer *renderer, float width, float height, float x, float y)
 {
     this->renderer = renderer;
-    smallFont = TTF_OpenFont("assets/Fonts/font.otf", 16);
+    smallFont = TTF_OpenFont("../Assets/Fonts/font.otf", 16);
     resizeDimensions(width, height, x, y);
     currentTab = 0;
     endYs = {0, 0};
