@@ -55,6 +55,7 @@ CMakeUserPresets.json
 *-prefix/
 
 ### VisualStudioCode ###
+.idea/*
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
