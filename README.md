@@ -21,6 +21,13 @@ It focuses on building and experimenting with dynamic systems such as planetary 
 
 ## Demo
 
+![Simulation](assets/Screenshots/simulation.gif)
+![Menu](assets/Screenshots/Menu.png)
+![Create Simulation](assets/Screenshots/CreateSim.png)
+![Edit Simulation](assets/Screenshots/EditSim.png)
+![Simulation](assets/Screenshots/Sim1.png)
+![Simulation](assets/Screenshots/Sim2.png)
+
 ## Technical Details
 
 ### Physics
