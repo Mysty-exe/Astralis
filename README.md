@@ -19,9 +19,8 @@ It focuses on building and experimenting with dynamic systems such as planetary 
 - Save and load system states using JSON
 - SDL based rendering and input system
 
-## Demo
+## Screenshots
 
-![Simulation](assets/Screenshots/simulation.gif)
 ![Menu](assets/Screenshots/Menu.png)
 ![Create Simulation](assets/Screenshots/CreateSim.png)
 ![Edit Simulation](assets/Screenshots/EditSim.png)
