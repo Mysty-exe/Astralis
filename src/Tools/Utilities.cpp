@@ -1,292 +1,176 @@
 #include <Utilities.h>
 
-long double Utilities::g = 6.674 * (1 / pow(10, 20));
+long double Utilities::g = 6.674e-11L;
 Texture Utilities::message = Texture();
 
-Vector Utilities::getSizeRatio(Vector startSize, Vector endSize)
+const vector<float> &Utilities::toSecs()
 {
-    return Vector((1 / startSize.x) * (endSize.x), (1 / startSize.y) * (endSize.y));
+    static std::vector<float> v = {
+        1.0f,       // sec
+        60.0f,      // min
+        3600.0f,    // hour
+        86400.0f,   // day
+        604800.0f,  // week
+        2592000.0f, // month
+        31536000.0f // year
+    };
+    return v;
 }
 
-vector<pair<Vector, Vector>> Utilities::getZoomScales(float width, float height)
+const std::vector<int> &Utilities::getSubdividor()
 {
-    vector<pair<Vector, Vector>> zoomScales;
+    static std::vector<int> v = {
+        1,
+        1,
+        1,
+        24,
+        24 * 7,
+        24 * 30,
+        24 * 73};
+    return v;
+}
 
-    for (float scale = 0.4; scale < 2; scale += 0.2)
+const std::vector<std::pair<std::string, double>> &Utilities::getTimeRates()
+{
+    static std::vector<std::pair<std::string, double>> v = {
+        {"sec", 1.0},
+        {"min", 60.0},
+        {"hour", 3600.0},
+        {"day", 86400.0},
+        {"week", 604800.0},
+        {"month", 2592000.0},
+        {"year", 31536000.0}};
+    return v;
+}
+
+long double Utilities::getGravityForce(long double m1, long double m2, long double distance)
+{
+    if (distance <= 0.0L)
+        return 0.0L;
+    return (g * m1 * m2) / (distance * distance);
+}
+
+float Utilities::getOrbitalVelocity(float centralMass, float distance)
+{
+    if (distance <= 0.0f)
+        return 0.0f;
+    return sqrt((float)(g * centralMass / distance));
+}
+
+// ---- Math helpers ----
+Vector Utilities::getSizeRatio(Vector startSize, Vector endSize)
+{
+    return Vector(endSize.x / startSize.x, endSize.y / startSize.y);
+}
+
+// ---- UI / Assets ----
+std::vector<std::pair<Vector, Vector>> Utilities::getZoomScales(float width, float height)
+{
+    std::vector<std::pair<Vector, Vector>> zoomScales;
+
+    for (float scale = 0.4f; scale < 2.0f; scale += 0.2f)
     {
-        zoomScales.push_back(make_pair(Vector(width * scale, height * scale), Vector(((width * 0.4) - (width * 0.2)) / 2, ((height * 0.4) - (height * 0.2)) / 2)));
+        zoomScales.emplace_back(
+            Vector(width * scale, height * scale),
+            Vector((width * (scale - 0.2f)) / 2.0f,
+                   (height * (scale - 0.2f)) / 2.0f));
     }
 
     return zoomScales;
 }
 
-vector<string> Utilities::getStellarObjects()
+std::vector<std::string> Utilities::getStellarObjects()
 {
-    vector<string> stellarObjects = {"Stars", "Planets", "Moons", "Asteroid"};
-    return stellarObjects;
+    return {"Stars", "Planets", "Moons", "Asteroid"};
 }
 
-vector<vector<string>> Utilities::getStellarFiles()
+std::vector<std::vector<std::string>> Utilities::getStellarFiles()
 {
-    vector<string> stars = {"../Assets/Objects/Stars/Red Star", "../Assets/Objects/Stars/White Star", "../Assets/Objects/Stars/Blue Star", "../Assets/Objects/Stars/Green Star", "../Assets/Objects/Stars/Purple Star"};
-    vector<string> planets = {"../Assets/Objects/Planets/Mercury", "../Assets/Objects/Planets/Venus", "../Assets/Objects/Planets/Earth", "../Assets/Objects/Planets/Mars", "../Assets/Objects/Planets/Jupiter", "../Assets/Objects/Planets/Uranus", "../Assets/Objects/Planets/Neptune", "../Assets/Objects/Planets/Pluto"};
-    vector<string> moons = {"../Assets/Objects/Moons/Moon", "../Assets/Objects/Moons/Europa", "../Assets/Objects/Moons/Triton"};
-    vector<string> asteroids = {"../Assets/Objects/Asteroid"};
-    vector<vector<string>> stellarObjects = {stars, planets, moons, asteroids};
-    return stellarObjects;
+    return {
+        {"../Assets/Objects/Stars/Red Star", "../Assets/Objects/Stars/White Star",
+         "../Assets/Objects/Stars/Blue Star", "../Assets/Objects/Stars/Green Star",
+         "../Assets/Objects/Stars/Purple Star"},
+
+        {"../Assets/Objects/Planets/Mercury", "../Assets/Objects/Planets/Venus",
+         "../Assets/Objects/Planets/Earth", "../Assets/Objects/Planets/Mars",
+         "../Assets/Objects/Planets/Jupiter", "../Assets/Objects/Planets/Uranus",
+         "../Assets/Objects/Planets/Neptune", "../Assets/Objects/Planets/Pluto"},
+
+        {"../Assets/Objects/Moons/Moon", "../Assets/Objects/Moons/Europa",
+         "../Assets/Objects/Moons/Triton"},
+
+        {"../Assets/Objects/Asteroid"}};
 }
 
-vector<float> Utilities::toSecs()
+std::vector<std::string> Utilities::getUnits()
 {
-    vector<float> toSecs = {};
-    toSecs.push_back(1);
-    toSecs.push_back(60);
-    toSecs.push_back(3600);
-    toSecs.push_back(24 * 3600);
-    toSecs.push_back(24 * 3600 * 7);
-    toSecs.push_back(24 * 3600 * 30);
-    toSecs.push_back(24 * 3600 * 73);
-
-    return toSecs;
+    return {"m/s", "m/min", "m/h", "m/day", "m/week", "m/month", "m/year"};
 }
 
-vector<float> Utilities::getSubdividor()
+// ---- Rendering ----
+void Utilities::drawCircle(SDL_Renderer *renderer, int x, int y, int radius)
 {
-    vector<float> subdividors = {};
-    subdividors.push_back(1);
-    subdividors.push_back(1);
-    subdividors.push_back(1);
-    subdividors.push_back(24);
-    subdividors.push_back(24 * 7);
-    subdividors.push_back(24 * 30);
-    subdividors.push_back(24 * 73);
-
-    return subdividors;
-}
-
-vector<string> Utilities::getUnits()
-{
-    vector<string> units = {};
-    units.push_back("m/s");
-    units.push_back("m/min");
-    units.push_back("m/h");
-    units.push_back("m/h");
-    units.push_back("m/h");
-    units.push_back("m/h");
-    units.push_back("m/h");
-
-    return units;
-}
-
-vector<pair<string, double>> Utilities::getTimeRates()
-{
-    vector<pair<string, double>> timeRates = {};
-    timeRates.push_back(make_pair("sec", 1.0));
-    timeRates.push_back(make_pair("min", 60.0));
-    timeRates.push_back(make_pair("hour", 3600.0));
-    timeRates.push_back(make_pair("day", 3600.0));
-    timeRates.push_back(make_pair("week", 3600.0));
-    timeRates.push_back(make_pair("month", 3600.0));
-    timeRates.push_back(make_pair("year", 3600.0));
-
-    return timeRates;
-}
-
-vector<pair<string, float>> Utilities::getTimeMultipliers()
-{
-    vector<pair<string, float>> timeRates = {};
-    timeRates.push_back(make_pair("Second", 1));
-    timeRates.push_back(make_pair("Minute", 60));
-    timeRates.push_back(make_pair("Hour", 60));
-    timeRates.push_back(make_pair("Day", 1));
-    timeRates.push_back(make_pair("Week", 1));
-    timeRates.push_back(make_pair("Month", 1));
-    timeRates.push_back(make_pair("Year", 1));
-
-    return timeRates;
-}
-
-float Utilities::getOrbitalVelocity(float orbitingMass, float distance)
-{
-    float vel = sqrt(Utilities::g * 3600 * orbitingMass / distance);
-    return vel;
-}
-
-long double Utilities::getGravityForce(long double mass1, long double mass2, long double distance, float rate)
-{
-    return (Utilities::g * (pow(rate, 2)) * mass1 * mass2) / pow(distance, 2);
-}
-
-void Utilities::drawCircle(SDL_Renderer *renderer, int displayX, int displayY, int radius)
-{
-    for (int y = -radius; y <= radius; y++)
+    for (int dy = -radius; dy <= radius; dy++)
     {
-        int dx = (int)sqrt(radius * radius - y * y);
-        SDL_RenderDrawLine(renderer, -dx + displayX, y + displayY, dx + displayX, y + displayY);
+        int dx = (int)sqrt(radius * radius - dy * dy);
+        SDL_RenderDrawLine(renderer, x - dx, y + dy, x + dx, y + dy);
     }
-};
-
-string Utilities::removeTrailingZeroes(string number)
-{
-    string newStr = "";
-    for (int i = number.length() - 1; i > -1; i--)
-    {
-        if (number[i] == '.' || (number[i] != '0' && number.find('.') != string::npos))
-        {
-            (number[i] == '.') ? newStr = number.substr(0, i) : newStr = number.substr(0, i + 1);
-            break;
-        }
-        if (number[i] != '0' && number.find('.') == string::npos)
-        {
-            return number;
-        }
-    }
-    return newStr;
 }
 
-bool Utilities::validateRadius(string radius)
+bool Utilities::validateNumber(const std::string &s)
 {
     try
     {
-        long double r = stold(radius);
+        std::stold(s);
     }
-    catch (const std::exception &e)
+    catch (...)
     {
         return false;
     }
     return true;
 }
 
-bool Utilities::validateMass(string mass)
+bool Utilities::validateDirection(const std::string &s)
 {
     try
     {
-        long double r = stold(mass);
+        long double d = std::stold(s);
+        return d >= -180.0 && d <= 180.0;
     }
-    catch (const std::exception &e)
+    catch (...)
     {
         return false;
     }
-    return true;
 }
 
-bool Utilities::validateVelocity(string vel)
+// ---- Formatting ----
+std::string Utilities::removeTrailingZeroes(std::string number)
 {
-    try
-    {
-        long double v = stold(vel);
-    }
-    catch (const std::exception &e)
-    {
-        return false;
-    }
-    return true;
+    size_t dot = number.find('.');
+    if (dot == std::string::npos)
+        return number;
+
+    while (!number.empty() && number.back() == '0')
+        number.pop_back();
+    if (!number.empty() && number.back() == '.')
+        number.pop_back();
+
+    return number;
 }
 
-bool Utilities::validateDirection(string degrees)
-{
-    try
-    {
-        long double d = stold(degrees);
-        if (d >= -180 && d <= 180)
-        {
-            return true;
-        }
-    }
-    catch (const std::exception &e)
-    {
-    }
-
-    return false;
-}
-
-string Utilities::getExponentForm(string num)
-{
-    string result;
-    int numZeroes = 0;
-    int decimal = 0;
-
-    if (num == "0")
-    {
-        return num;
-    }
-
-    for (int i = num.length() - 1; i > -1; i--)
-    {
-        if (num[i] == '0')
-        {
-            numZeroes++;
-        }
-        else
-        {
-            if (numZeroes > 0)
-            {
-                result = num.substr(0, i + 1);
-                return result + "E+" + to_string(numZeroes);
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-
-    numZeroes = 0;
-    for (int i = 0; i < num.length(); i++)
-    {
-        if (num[i] == '0')
-        {
-            numZeroes++;
-        }
-        else if (num[i] == '.')
-        {
-            decimal++;
-        }
-        else
-        {
-            if (numZeroes > 0 && decimal == 1)
-            {
-                result = num.substr(i, num.length() - i);
-                return result + "E-" + to_string(numZeroes);
-            }
-        }
-    }
-
-    return num;
-}
-
-pair<string, string> Utilities::parseInput(string input)
-{
-    string currentState = "Base";
-    string base = "";
-    string exponent = "";
-
-    for (int x = 0; x < input.length(); x++)
-    {
-        if (isdigit(input[x]) || input[x] == '.' || input[x] == '-' || input[x] == '+')
-        {
-            (currentState == "Base") ? base += input[x] : exponent += input[x];
-        }
-        else if (input[x] == 'e' || input[x] == 'E')
-        {
-            currentState = "Exponent";
-        }
-    }
-    if (exponent.length() == 0)
-    {
-        exponent = "0";
-    }
-
-    return make_pair(base.c_str(), exponent.c_str());
-}
-
-void Utilities::displayMessage(SDL_Renderer *renderer, float width, float height, string text, int messageLevel)
+// ---- Messaging ----
+void Utilities::displayMessage(SDL_Renderer *renderer, float width, float height, std::string text, int level)
 {
     message.loadFromRenderedText(renderer, TTF_OpenFont("../Assets/Fonts/font.otf", 18), text, {255, 255, 255});
 
-    int y = height - ((message.getHeight() + 30) * messageLevel);
+    int y = height - ((message.getHeight() + 30) * level);
     message.setCoords(width / 2 - message.getWidth() / 2, y);
-    SDL_Rect rect = {message.getX() - 10, message.getY() - 10, message.getWidth() + 20, message.getHeight() + 20};
+
+    SDL_Rect rect = {
+        message.getX() - 10,
+        message.getY() - 10,
+        message.getWidth() + 20,
+        message.getHeight() + 20};
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 150);
     SDL_RenderFillRect(renderer, &rect);

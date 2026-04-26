@@ -35,7 +35,7 @@ SimulationManager::SimulationManager(SDL_Renderer *renderer, int width, int heig
     Input *name = new Input(renderer, "Name", "", "Name Of The Celestial Object", "", 128, 50);
     Input *radius = new Input(renderer, "Radius", "", "Radius Of The Celestial Object (in km)", "", 128, 50);
     Input *mass = new Input(renderer, "Mass", "", "Mass Of The Celestial Object (in kg)", "", 128, 50);
-    Input *velocity = new Input(renderer, "Velocity", "", "Velocity Of The Celestial Object (in m/s)", "", 128, 50);
+    Input *velocity = new Input(renderer, "Velocity", "", "Velocity Of The Celestial Object (in km/s)", "", 128, 50);
     Input *direction = new Input(renderer, "Direction", "", "Velocity Direction (in degrees)", "", 128, 50);
     direction->setSlider(Slider(renderer, width / 4, height, -180, 180, 0));
     Button button = Button(renderer, "Save Changes");

@@ -28,34 +28,86 @@ void MenuManager::loadSimulationData(vector<Simulation> *simulations)
 {
     ifstream f1("../data/templates.json");
     json templatesData = json::parse(f1);
+
     ifstream f2("../data/simulations.json");
     json simulationsData = json::parse(f2);
 
     for (const auto &d : templatesData.items())
     {
-        Simulation sim = Simulation(renderer, d.key(), templatesData[d.key()]["distRatio"], templatesData[d.key()]["simRadius"]);
+        Simulation sim(renderer,
+                       d.key(),
+                       templatesData[d.key()]["distRatio"],
+                       templatesData[d.key()]["simRadius"]);
+
         for (const auto &obj : templatesData[d.key()]["objects"].items())
         {
             json objJson = templatesData[d.key()]["objects"][obj.key()];
-            CelestialObject o = CelestialObject(renderer, width, height, obj.key(), objJson["objType"], objJson["folder"], objJson["mass"], objJson["radius"], objJson["position"][0], objJson["position"][1], Vector(objJson["velocity"][0], objJson["velocity"][1]));
+
+            Vector pos(
+                objJson["position"][0],
+                objJson["position"][1]);
+
+            Vector vel(
+                objJson["velocity"][0],
+                objJson["velocity"][1]);
+
+            CelestialObject o(renderer,
+                              width,
+                              height,
+                              obj.key(),
+                              objJson["objType"],
+                              objJson["folder"],
+                              objJson["mass"],
+                              objJson["radius"],
+                              pos.x,
+                              pos.y,
+                              vel);
+
             sim.addObject(o);
             sim.scaleObjects(obj.key());
         }
+
         templates.push_back(sim);
     }
 
     for (const auto &d : simulationsData.items())
     {
-        Simulation sim = Simulation(renderer, d.key(), simulationsData[d.key()]["distRatio"], simulationsData[d.key()]["simRadius"]);
+        Simulation sim(renderer,
+                       d.key(),
+                       simulationsData[d.key()]["distRatio"],
+                       simulationsData[d.key()]["simRadius"]);
+
         sim.setObjectsNum(simulationsData[d.key()]["objectsNum"]);
         sim.setSimSecs(simulationsData[d.key()]["seconds"]);
+
         for (const auto &obj : simulationsData[d.key()]["objects"].items())
         {
             json objJson = simulationsData[d.key()]["objects"][obj.key()];
-            CelestialObject o = CelestialObject(renderer, width, height, obj.key(), objJson["objType"], objJson["folder"], objJson["mass"], objJson["radius"], objJson["position"][0], objJson["position"][1], Vector(objJson["velocity"][0], objJson["velocity"][1]));
+
+            Vector pos(
+                objJson["position"][0],
+                objJson["position"][1]);
+
+            Vector vel(
+                objJson["velocity"][0],
+                objJson["velocity"][1]);
+
+            CelestialObject o(renderer,
+                              width,
+                              height,
+                              obj.key(),
+                              objJson["objType"],
+                              objJson["folder"],
+                              objJson["mass"],
+                              objJson["radius"],
+                              pos.x,
+                              pos.y,
+                              vel);
+
             sim.addObject(o);
             sim.scaleObjects(obj.key());
         }
+
         simulations->push_back(sim);
     }
 }
@@ -64,30 +116,33 @@ void MenuManager::saveSimulationData(vector<Simulation> *simulations)
 {
     json simData;
     std::ofstream o("../data/simulations.json");
-    for (Simulation sim : *simulations)
+
+    for (Simulation &sim : *simulations)
     {
         json objectsData;
-        for (CelestialObject obj : sim.getObjects())
-        {
-            obj.setVelocity(obj.getVelocity() / Utilities::getTimeRates()[sim.getTimeRate()].second);
 
-            objectsData[obj.getName()] = {
-                {"objType", obj.getObjType(obj.getObjType())},
-                {"folder", obj.getFolder()},
-                {"mass", sim.getRealMass(obj.getMass())},
-                {"radius", sim.getRealDistance(obj.getRadius())},
-                {"position", {obj.getPosition().x, obj.getPosition().y}},
-                {"velocity", {sim.getRealDistance(obj.getVelocity().x), sim.getRealDistance(obj.getVelocity().y)}}};
+        for (CelestialObject &obj : sim.getObjects())
+        {
+            Vector v = obj.getVelocity();
+
+            objectsData[obj.getName()] =
+                {
+                    {"objType", obj.getObjType(obj.getObjType())},
+                    {"folder", obj.getFolder()},
+                    {"mass", sim.getRealMass(obj.getMass())},
+                    {"radius", sim.getRealDistance(obj.getRadius())},
+                    {"position", {obj.getPosition().x, obj.getPosition().y}},
+                    {"velocity", {sim.getRealDistance(v.x), sim.getRealDistance(v.y)}}};
         }
 
         simData[sim.getName()] = {
             {"simRadius", sim.getSimRadius()},
             {"distRatio", sim.getDistRatio()},
             {"objectsNum", sim.getObjectsNum()},
-            {"seconds", sim.getSimSecs()}};
-
-        simData[sim.getName()]["objects"] = objectsData;
+            {"seconds", sim.getSimSecs()},
+            {"objects", objectsData}};
     }
+
     o << std::setw(4) << simData << std::endl;
 }
 
@@ -331,9 +386,16 @@ int MenuManager::runLoadSim(EventsManager eventManager, vector<Simulation> *simu
 
     int y = loadSimulationTxt.getY() + loadSimulationTxt.getHeight() + 10;
     int deleteIndex = -1;
+
     for (int i = 0; i < simulations->size(); i++)
     {
         SDL_Rect rect = {100, (int)(y - loadScrollbar.getScroll()), (int)width - 200, 70};
+
+        binIcon.setCoords(width - 100 - binIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - binIcon.getHeight() - 10);
+        binHoverIcon.setCoords(width - 100 - binIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - binIcon.getHeight() - 10);
+
+        editIcon.setCoords(binIcon.getX() - editIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - editIcon.getHeight() - 10);
+        editHoverIcon.setCoords(binIcon.getX() - editIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - editIcon.getHeight() - 10);
 
         if (SDL_PointInRect(&point, &rect))
         {
@@ -390,12 +452,6 @@ int MenuManager::runLoadSim(EventsManager eventManager, vector<Simulation> *simu
         simNameTxt.loadFromRenderedText(renderer, bigFont, simulations->at(i).getName(), {255, 255, 255});
         simNameTxt.setCoords(120, y + 70 - loadScrollbar.getScroll() - simNameTxt.getHeight() - 10);
         simNameTxt.render(renderer);
-
-        binIcon.setCoords(width - 100 - binIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - binIcon.getHeight() - 10);
-        binHoverIcon.setCoords(width - 100 - binIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - binIcon.getHeight() - 10);
-
-        editIcon.setCoords(binIcon.getX() - editIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - editIcon.getHeight() - 10);
-        editHoverIcon.setCoords(binIcon.getX() - editIcon.getWidth() - 10, y + 70 - loadScrollbar.getScroll() - editIcon.getHeight() - 10);
 
         SDL_RenderDrawLine(renderer, 100, y + 70 - loadScrollbar.getScroll(), width - 100, y + 70 - loadScrollbar.getScroll());
         y += 70;

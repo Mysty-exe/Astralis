@@ -34,10 +34,6 @@ Simulation::Simulation(SDL_Renderer *renderer, string name, double distRatio, do
 
 void Simulation::reset()
 {
-    for (CelestialObject &obj : objects)
-    {
-        obj.setVelocity(obj.getVelocity() / Utilities::getTimeRates()[timeRate].second);
-    }
     editing = false;
     focusedObject = -1;
     timeRate = 0;
@@ -320,83 +316,138 @@ void Simulation::run(double timeStep)
 
 void Simulation::applyForces(double timeStep)
 {
-    int rate = Utilities::getTimeRates()[timeRate].second;
-    for (int i = 0; i < Utilities::getSubdividor()[timeRate]; i++)
-    {
-        for (CelestialObject &obj : objects)
-        {
-            for (CelestialObject &otherObj : objects)
-            {
-                if (obj.getName() != otherObj.getName())
-                {
-                    Vector forceVector = otherObj.getPosition() - obj.getPosition();
-                    forceVector.normalize();
+    int steps = Utilities::getSubdividor()[timeRate];
+    double rate = Utilities::getTimeRates()[timeRate].second;
 
-                    double force = Utilities::getGravityForce(getRealMass(obj.getMass()), getRealMass(otherObj.getMass()), getRealDistance(otherObj.getPosition().distance(obj.getPosition())), rate);
-                    forceVector *= (force / getRealMass(obj.getMass()));
-                    forceVector = forceVector.normalize() * scaleDistance(forceVector.magnitude());
-                    obj.addVelocity(forceVector * timeStep);
-                }
+    double dt = timeStep * rate / steps;
+
+    int n = objects.size();
+
+    for (int step = 0; step < steps; step++)
+    {
+        std::vector<Vector> acc(n, Vector(0, 0));
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = i + 1; j < n; j++)
+            {
+                Vector dir = objects[j].getPosition() - objects[i].getPosition();
+                double dist = dir.magnitude();
+
+                if (dist <= 0.0)
+                    continue;
+
+                Vector unit = dir / dist;
+
+                long double r = getRealDistance(dist) * 1000.0;
+
+                long double m1 = getRealMass(objects[i].getMass());
+                long double m2 = getRealMass(objects[j].getMass());
+
+                long double a1 = Utilities::g * m2 / (r * r);
+                long double a2 = Utilities::g * m1 / (r * r);
+
+                long double a1_px = a1 / (distRatio * 1000.0);
+                long double a2_px = a2 / (distRatio * 1000.0);
+
+                acc[i] += unit * (double)a1_px;
+                acc[j] -= unit * (double)a2_px;
             }
         }
-        applyVelocities(timeStep);
+
+        for (int i = 0; i < n; i++)
+        {
+            objects[i].addVelocity(acc[i] * dt);
+        }
+
+        applyVelocities(dt);
     }
 }
 
-void Simulation::applyVelocities(double timeStep)
+void Simulation::applyVelocities(double dt)
 {
-    double third = 1 / 3.0;
-    for (int i = 0; i < objects.size(); i++)
+    int n = objects.size();
+
+    for (int i = 0; i < n; i++)
     {
-        objects[i].addPosition(objects[i].getVelocity() * timeStep);
+        objects[i].addPosition(objects[i].getVelocity() * dt);
+
         if (getRealPosition(objects[i].getPosition()).magnitude() > simRadius)
         {
             objects[i].deleteObject();
+        }
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        if (objects[i].isMarkedForDelete())
             continue;
-        }
 
-        for (int ii = 0; ii < objects.size(); ii++)
+        for (int j = i + 1; j < n; j++)
         {
-            if (objects[ii].isMarkedForDelete() || i == ii)
-            {
+            if (objects[j].isMarkedForDelete())
                 continue;
-            }
-            if (objects[i].getName() != objects[ii].getName() && (objects[i].getPosition().distance(objects[ii].getPosition()) <= objects[i].getRadius() + objects[ii].getRadius()))
-            {
-                if (objects[i].getMass() >= objects[ii].getMass() || (objects[i].getObjType() == STAR && objects[ii].getObjType() != STAR))
-                {
-                    objects[i].addMass(objects[ii].getMass());
-                    objects[i].setVelocity(Vector(objects[i].getVelocity() * objects[i].getMass() + objects[ii].getVelocity() * objects[ii].getMass()) / (objects[i].getMass() + objects[ii].getMass()));
-                    objects[i].setUpdateRadius(pow(pow(objects[i].getRadius(), 3) + pow(objects[ii].getRadius(), 3), third));
-                    objects[i].startParticles((objects[ii].getPosition() - objects[i].getPosition()).normalize(), log(getRealDistance(objects[ii].getRadius())));
-                    objects[ii].getObject()->freeAll();
-                    objects[ii].deleteObject();
-                }
-                else if (objects[i].getMass() < objects[ii].getMass() || (objects[ii].getObjType() == STAR && objects[i].getObjType() != STAR))
-                {
-                    objects[ii].addMass(objects[i].getMass());
-                    objects[ii].setVelocity(Vector(objects[ii].getVelocity() * objects[ii].getMass() + objects[i].getVelocity() * objects[i].getMass()) / (objects[ii].getMass() + objects[i].getMass()));
-                    objects[ii].setUpdateRadius(pow(pow(objects[ii].getRadius(), 3) + pow(objects[i].getRadius(), 3), third));
-                    objects[ii].startParticles((objects[i].getPosition() - objects[ii].getPosition()).normalize(), log(getRealDistance(objects[i].getRadius())));
-                    objects[i].getObject()->freeAll();
-                    objects[i].deleteObject();
-                }
-            }
-        }
 
-        if (!objects[i].getPosition().isNumber() || !objects[i].getVelocity().isNumber())
+            double dist = objects[i].getPosition().distance(objects[j].getPosition());
+            double rSum = objects[i].getRadius() + objects[j].getRadius();
+
+            if (dist > rSum)
+                continue;
+
+            CelestialObject &A = objects[i];
+            CelestialObject &B = objects[j];
+
+            bool A_big =
+                (A.getMass() >= B.getMass()) ||
+                (A.getObjType() == STAR && B.getObjType() != STAR);
+
+            CelestialObject &big = A_big ? A : B;
+            CelestialObject &small = A_big ? B : A;
+
+            double m1 = big.getMass();
+            double m2 = small.getMass();
+
+            Vector v1 = big.getVelocity();
+            Vector v2 = small.getVelocity();
+
+            double totalMass = m1 + m2;
+
+            Vector newVel = (v1 * m1 + v2 * m2) / totalMass;
+
+            big.setVelocity(newVel);
+            big.setMass(totalMass);
+
+            double r1 = big.getRadius();
+            double r2 = small.getRadius();
+
+            big.setUpdateRadius(pow(r1 * r1 * r1 + r2 * r2 * r2, 1.0 / 3.0));
+
+            big.startParticles(
+                (small.getPosition() - big.getPosition()).normalize(),
+                log(getRealDistance(r2)));
+
+            small.getObject()->freeAll();
+            small.deleteObject();
+        }
+    }
+
+    for (auto &obj : objects)
+    {
+        if (!obj.getPosition().isNumber() || !obj.getVelocity().isNumber())
         {
-            objects[i].getObject()->freeAll();
-            objects[i].deleteObject();
+            obj.getObject()->freeAll();
+            obj.deleteObject();
         }
 
-        objects[i].updateSizeGradually(renderer, timeStep);
+        obj.updateSizeGradually(renderer, dt);
     }
 
     objects.erase(
-        remove_if(objects.begin(), objects.end(),
-                  [](CelestialObject o)
-                  { return o.isMarkedForDelete(); }),
+        std::remove_if(objects.begin(), objects.end(),
+                       [](CelestialObject &o)
+                       {
+                           return o.isMarkedForDelete();
+                       }),
         objects.end());
 }
 
@@ -407,16 +458,41 @@ void Simulation::dragObject(int obj, Vector dragOffset)
 
 void Simulation::calculateEnergy()
 {
-    for (CelestialObject &obj1 : objects)
+    int n = objects.size();
+
+    for (int i = 0; i < n; i++)
     {
-        obj1.setKineticEnergy(0.5 * getRealMass(obj1.getMass()) * pow(getRealDistance(obj1.getVelocity().magnitude()), 2));
-        obj1.setPotentialEnergy(0);
-        for (CelestialObject &obj2 : objects)
+        CelestialObject &A = objects[i];
+
+        long double m1 = getRealMass(A.getMass());
+
+        long double v = getRealDistance(A.getVelocity().magnitude()) * 1000;
+
+        A.setKineticEnergy(0.5 * m1 * v * v);
+        A.setPotentialEnergy(0);
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
         {
-            if (obj1.getName() != obj2.getName())
-            {
-                obj1.addPotentialEnergy((Utilities::g * getRealMass(obj2.getMass()) * getRealMass(obj1.getMass())) / getRealDistance(obj2.getPosition().distance(obj1.getPosition())));
-            }
+            CelestialObject &A = objects[i];
+            CelestialObject &B = objects[j];
+
+            long double m1 = getRealMass(A.getMass());
+            long double m2 = getRealMass(B.getMass());
+
+            long double dist = getRealDistance(
+                                   A.getPosition().distance(B.getPosition())) *
+                               1000;
+
+            if (dist < 1e-6)
+                continue;
+
+            long double U = -Utilities::g * m1 * m2 / dist;
+
+            A.addPotentialEnergy(U);
+            B.addPotentialEnergy(U);
         }
     }
 }
@@ -460,10 +536,6 @@ void Simulation::speedUp()
     if (timeRate < Utilities::getTimeRates().size() - 1)
     {
         timeRate++;
-        for (CelestialObject &object : objects)
-        {
-            object.setVelocity(object.getVelocity() * Utilities::getTimeMultipliers()[timeRate].second);
-        }
     }
 }
 
@@ -471,10 +543,6 @@ void Simulation::slowDown()
 {
     if (timeRate > 0)
     {
-        for (CelestialObject &object : objects)
-        {
-            object.setVelocity(object.getVelocity() / Utilities::getTimeMultipliers()[timeRate].second);
-        }
         timeRate--;
     }
 }
@@ -496,52 +564,64 @@ void Simulation::calculateTrajectory(Vector panningOffset)
     for (CelestialObject &obj : objects)
     {
         rate = Utilities::getTimeRates()[timeRate].second;
+
         pos = obj.getPosition();
         prevPos = pos;
-        vel = obj.getVelocity() / rate * 3600.0;
+        vel = obj.getVelocity();
+
         counter = 0;
         stop = false;
+
         vector<Vector> positions;
+
+        double dt = 0.01 * rate;
 
         for (int i = 0; i < 10000; i++)
         {
-            SDL_Point trajectoryPoint = {(int)pos.x, (int)pos.y};
-            for (CelestialObject obj2 : objects)
+            Vector acc(0, 0);
+
+            for (CelestialObject &other : objects)
             {
-                if (obj.getName() != obj2.getName())
+                if (&obj == &other)
+                    continue;
+
+                Vector dir = other.getPosition() - pos;
+                double dist = dir.magnitude();
+
+                if (dist < 1e-6)
+                    continue;
+
+                Vector unit = dir / dist;
+
+                long double r = getRealDistance(dist) * 1000.0;
+                long double m2 = getRealMass(other.getMass());
+
+                long double a = Utilities::g * m2 / (r * r);
+                long double a_px = a / (distRatio * 1000.0);
+
+                acc += unit * (double)a_px;
+
+                SDL_Point p = {(int)pos.x, (int)pos.y};
+                SDL_Rect rect = other.getRect(panningOffset);
+
+                if (SDL_PointInRect(&p, &rect))
                 {
-                    SDL_Rect rect = obj2.getRect(panningOffset);
-                    if (SDL_PointInRect(&trajectoryPoint, &rect))
-                    {
-                        stop = true;
-                    }
-
-                    Vector forceVector = obj2.getPosition() - pos;
-                    forceVector.normalize();
-
-                    double force = Utilities::getGravityForce(getRealMass(obj.getMass()), getRealMass(obj2.getMass()), getRealDistance(obj2.getPosition().distance(pos)), 3600.0);
-                    forceVector *= (force / getRealMass(obj.getMass()));
-                    forceVector = forceVector.normalize() * scaleDistance(forceVector.magnitude());
-                    vel += forceVector * 0.001;
+                    stop = true;
                 }
             }
 
-            pos += vel * 0.001;
-            SDL_Rect rect = obj.getRect(panningOffset);
-            if (!SDL_PointInRect(&trajectoryPoint, &rect) && !stop)
+            vel += acc * dt;
+            pos += vel * dt;
+
+            if (!stop && (pos.distance(prevPos) >= 35 || counter == 0))
             {
-                if (pos.distance(prevPos) >= 35 || counter == 0)
-                {
-                    prevPos = pos;
-                    counter++;
-                    positions.push_back(pos);
-                }
+                prevPos = pos;
+                positions.push_back(pos);
+                counter++;
             }
 
             if (counter >= 50 || stop)
-            {
                 break;
-            }
         }
 
         obj.setTrajectories(positions);
@@ -671,7 +751,7 @@ int Simulation::displayObjectInfo(CelestialObject obj, Overlay overlay, Vector w
     std::stringstream potentialTxt;
     radiusTxt << getRealDistance(obj.getRadius());
     massTxt << getRealMass(obj.getMass());
-    velocityTxt << getRealDistance(obj.getVelocity().magnitude()) / Utilities::getTimeRates()[timeRate].second;
+    velocityTxt << getRealDistance(obj.getVelocity().magnitude());
     kineticTxt << obj.getKineticEnergy();
     potentialTxt << obj.getPotentialEnergy();
 

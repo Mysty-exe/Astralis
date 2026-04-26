@@ -56,6 +56,7 @@ CMakeUserPresets.json
 
 ### VisualStudioCode ###
 .idea/*
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -73,3 +74,4 @@ CMakeUserPresets.json
 # Ignore all local history of files
 .history
 .ionide
+build/*
